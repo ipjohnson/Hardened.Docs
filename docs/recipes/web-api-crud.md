@@ -23,7 +23,9 @@ Build a complete CRUD (Create, Read, Update, Delete) REST API for managing Todo 
 ```bash
 dotnet new web -n TodoApi
 cd TodoApi
-dotnet add package Hardened.Web.AspNetCore.SourceGenerator --prerelease
+dotnet add package Hardened.Web.AspNetCore.Runtime --prerelease
+dotnet add package Hardened.Web.SourceGenerator --prerelease
+dotnet add package Hardened.DependencyModules.SourceGenerator --prerelease
 ```
 
 ---

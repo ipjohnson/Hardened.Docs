@@ -136,7 +136,7 @@ MyPlatform/
     Program.cs
     Controllers/
       UserController.cs
-    MyPlatform.Api.csproj     # Uses Hardened.Web.AspNetCore.SourceGenerator
+    MyPlatform.Api.csproj     # Uses Hardened.Web.AspNetCore.Runtime + Hardened.Web.SourceGenerator
   MyPlatform.Lambda/
     Application.cs            # [HardenedModule]
     Handlers/

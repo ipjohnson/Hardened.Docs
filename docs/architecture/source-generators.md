@@ -1,6 +1,6 @@
 # Source Generators
 
-Hardened uses **seven C# incremental source generators** to shift framework concerns from runtime to build time. Each generator targets a specific aspect of the framework and emits plain C# code that replaces what would otherwise require reflection, assembly scanning, or manual boilerplate.
+Hardened uses **C# incremental source generators** to shift framework concerns from runtime to build time. Each generator targets a specific aspect of the framework and emits plain C# code that replaces what would otherwise require reflection, assembly scanning, or manual boilerplate.
 
 ---
 
@@ -8,13 +8,20 @@ Hardened uses **seven C# incremental source generators** to shift framework conc
 
 | Generator | NuGet Package | What It Generates | When to Use |
 |---|---|---|---|
-| **Core** | `Hardened.SourceGenerator` | DI registrations, module wiring, configuration implementations | Every application project |
+| **Modules** | `Hardened.DependencyModules.SourceGenerator` | Module wiring, `PopulateServiceCollection`, DI registrations | Every application project |
 | **Library** | `Hardened.Library.SourceGenerator` | DI registrations, configuration for library modules | Shared library projects consumed by applications |
 | **Console** | `Hardened.Console.SourceGenerator` | Console app entry point, command definitions | Console applications |
 | **Web** | `Hardened.Web.SourceGenerator` | Route tables, request handler invocation classes | Projects using `[Get]`, `[Post]`, etc. |
-| **ASP.NET Core** | `Hardened.Web.AspNetCore.SourceGenerator` | ASP.NET Core middleware bridge code | Projects hosted on ASP.NET Core |
 | **Templates** | `Hardened.Templates.SourceGenerator` | Compiled Mustache templates, helper bindings | Projects using `[TemplatePackage]` |
 | **Lambda** | `Hardened.Amz.Function.Lambda.SourceGenerator` | Lambda bootstrap, function handler wiring | AWS Lambda function projects |
+
+!!! note
+    `Hardened.SourceGenerator` is **not** a generator you reference directly — it is the
+    shared source library that the generators above compile into themselves. Referencing it
+    from an application project does nothing.
+
+    ASP.NET Core needs no dedicated generator. The bridge is runtime middleware in
+    `Hardened.Web.AspNetCore.Runtime`; use the **Web** and **Modules** generators above.
 
 ---
 
@@ -178,16 +185,18 @@ The generator also produces a **parameters class** for each handler that holds t
 
 ---
 
-### 5. ASP.NET Core Generator (`Hardened.Web.AspNetCore.SourceGenerator`)
+### 5. ASP.NET Core — no generator required
 
-**Package:** `Hardened.Web.AspNetCore.SourceGenerator`
+ASP.NET Core integration is implemented as **runtime middleware**, not generated code. The
+bridge lives entirely in `Hardened.Web.AspNetCore.Runtime`:
 
-Generates the bridge code that connects Hardened's execution pipeline to the ASP.NET Core middleware pipeline:
+- `AspNetExecutionRequest` / `AspNetExecutionResponse` map `HttpContext` to
+  `IExecutionRequest` and `IExecutionResponse`
+- `AspNetCoreExtensions.UseHardened()` registers the Hardened middleware
+- Scoped services resolve through `HttpContext.RequestServices`
+- `AspNetExecutionResponse` writes back to the ASP.NET Core response stream
 
-- Maps `HttpContext` to `IExecutionRequest` and `IExecutionResponse`
-- Creates the `UseHardened()` extension method
-- Bridges ASP.NET Core's `IServiceProvider` with Hardened's scoped services
-- Handles response writing back to the ASP.NET Core response stream
+Reference the **Web** and **Modules** generators for routing and DI wiring.
 
 ---
 
@@ -270,9 +279,9 @@ The generators you reference depend on your project type:
 === "ASP.NET Core Web API"
 
     ```xml
-    <PackageReference Include="Hardened.SourceGenerator" />
+    <PackageReference Include="Hardened.Web.AspNetCore.Runtime" />
     <PackageReference Include="Hardened.Web.SourceGenerator" />
-    <PackageReference Include="Hardened.Web.AspNetCore.SourceGenerator" />
+    <PackageReference Include="Hardened.DependencyModules.SourceGenerator" />
     ```
 
 === "Lambda Function"

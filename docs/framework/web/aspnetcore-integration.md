@@ -2,7 +2,12 @@
 
 Hardened integrates with ASP.NET Core through a thin bridge layer. Your Hardened routes, DI registrations, and filters run inside the standard ASP.NET Core pipeline, giving you access to the full ASP.NET Core ecosystem (Kestrel, middleware, CORS, authentication, etc.) while keeping Hardened's compile-time benefits.
 
-**Package:** `Hardened.Web.AspNetCore.Runtime`, `Hardened.Web.AspNetCore.SourceGenerator`
+**Packages:** `Hardened.Web.AspNetCore.Runtime` (the bridge itself), plus the
+`Hardened.Web.SourceGenerator` and `Hardened.DependencyModules.SourceGenerator` analyzers.
+
+The bridge is implemented entirely as runtime middleware — `UseHardened()` and the
+`HttpContext` ⇄ `IExecutionContext` mapping live in `Hardened.Web.AspNetCore.Runtime`.
+No ASP.NET-specific source generator is involved.
 
 ---
 
