@@ -15,11 +15,19 @@ Choose the packages that match your project type:
 
 | Package | Description |
 |---|---|
-| `Hardened.Web.AspNetCore.SourceGenerator` | ASP.NET Core web API — brings in all framework dependencies |
+| `Hardened.Web.AspNetCore.Runtime` | ASP.NET Core bridge — transitively brings `Hardened.Requests.Abstract`, `Hardened.Requests.Runtime`, and `Hardened.Web.Runtime` |
+| `Hardened.Web.SourceGenerator` | Generates route tables and request handler invocation classes |
+| `Hardened.DependencyModules.SourceGenerator` | Generates module wiring and `PopulateServiceCollection` |
 
 ```bash
-dotnet add package Hardened.Web.AspNetCore.SourceGenerator --prerelease
+dotnet add package Hardened.Web.AspNetCore.Runtime --prerelease
+dotnet add package Hardened.Web.SourceGenerator --prerelease
+dotnet add package Hardened.DependencyModules.SourceGenerator --prerelease
 ```
+
+!!! note
+    `Hardened.Web.SourceGenerator` supersedes `Hardened.Library.SourceGenerator` for web
+    projects — you do not need both.
 
 ### Libraries and modules
 

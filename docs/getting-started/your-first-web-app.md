@@ -26,13 +26,18 @@ dotnet new web -n HelloHardened
 cd HelloHardened
 ```
 
-Add the Hardened ASP.NET Core source generator:
+Add the Hardened ASP.NET Core packages:
 
 ```bash
-dotnet add package Hardened.Web.AspNetCore.SourceGenerator --prerelease
+dotnet add package Hardened.Web.AspNetCore.Runtime --prerelease
+dotnet add package Hardened.Web.SourceGenerator --prerelease
+dotnet add package Hardened.DependencyModules.SourceGenerator --prerelease
 ```
 
-This single package pulls in everything you need: the core framework, DI source generator, web routing source generator, and ASP.NET Core integration.
+`Hardened.Web.AspNetCore.Runtime` brings the core framework and ASP.NET Core bridge (it
+transitively pulls in `Hardened.Requests.Abstract`, `Hardened.Requests.Runtime`, and
+`Hardened.Web.Runtime`). The two source generators emit the routing and DI wiring at
+build time.
 
 ---
 

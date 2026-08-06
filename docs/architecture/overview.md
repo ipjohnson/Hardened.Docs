@@ -152,16 +152,16 @@ graph LR
 
 ## Source Generator Architecture
 
-Hardened uses **seven C# source generators** that run during compilation. Each generator targets a specific layer and emits code that would otherwise need to be written by hand or resolved at runtime.
+Hardened uses **C# source generators** that run during compilation. Each generator targets a specific layer and emits code that would otherwise need to be written by hand or resolved at runtime. The diagram below shows the most commonly referenced ones.
 
 ```mermaid
 graph TD
     subgraph "Source Generators"
-        SG1[Hardened.SourceGenerator]
+        SG1[Hardened.DependencyModules.SourceGenerator]
         SG2[Hardened.Library.SourceGenerator]
         SG3[Hardened.Console.SourceGenerator]
         SG4[Hardened.Web.SourceGenerator]
-        SG5[Hardened.Web.AspNetCore.SourceGenerator]
+        SG5[Hardened.OpenApi.SourceGenerator]
         SG6[Hardened.Templates.SourceGenerator]
         SG7[Hardened.Amz.Function.Lambda.SourceGenerator]
     end
@@ -171,7 +171,7 @@ graph TD
         O2[Module wiring]
         O3[Configuration implementations]
         O4[Route tables]
-        O5[ASP.NET Core bridge]
+        O5[OpenAPI documents]
         O6[Template compilation]
         O7[Lambda bootstrap]
     end
