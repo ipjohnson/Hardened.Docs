@@ -226,9 +226,9 @@ Filters receive the context through `IExecutionChain.Context`:
 
 ```csharp
 using Hardened.Requests.Abstract.Execution;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose(typeof(IExecutionFilter))]
+[TransientService(As = typeof(IExecutionFilter))]
 public class RequestLoggingFilter : IExecutionFilter {
     private readonly ILogger<RequestLoggingFilter> _logger;
 

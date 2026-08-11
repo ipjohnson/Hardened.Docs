@@ -186,7 +186,7 @@ When `[Mock]` is used, the mock replaces any existing DI registration for that t
 
 ```csharp
 // In the application:
-[Expose(typeof(IEmailSender))]
+[TransientService(As = typeof(IEmailSender))]
 public class SmtpEmailSender : IEmailSender {
     public Task Send(string to, string body) {
         // Real SMTP call -- you do NOT want this in tests

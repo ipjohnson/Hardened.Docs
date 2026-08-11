@@ -39,9 +39,9 @@ Inject `IDynamoDbClientProvider` into your services and call `GetClient()` to ob
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Hardened.Amz.DynamoDbClient;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
+[TransientService]
 public class UserRepository : IUserRepository
 {
     private readonly AmazonDynamoDBClient _client;
@@ -219,9 +219,9 @@ public partial class Application { }
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Hardened.Amz.DynamoDbClient;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
+[TransientService]
 public class ProductRepository : IProductRepository
 {
     private const string TableName = "Products";

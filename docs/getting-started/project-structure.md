@@ -18,7 +18,7 @@ MyService/
       ProductController.cs
     Services/
       IOrderService.cs        # Service interfaces
-      OrderService.cs         # [Expose] implementations
+      OrderService.cs         # service implementations
     Models/
       OrderRequest.cs         # Request/response models
       OrderResponse.cs
@@ -43,7 +43,7 @@ MyService/
 | `Application.cs` | The `[HardenedModule]` partial class. One per project. Acts as the composition root. |
 | `Program.cs` | Minimal entry point for web apps. Lambda functions do not need this. |
 | `Controllers/` | Classes with `[Get]`, `[Post]`, `[Put]`, `[Delete]` route methods |
-| `Services/` | Business logic. Interfaces paired with `[Expose]` implementations. |
+| `Services/` | Business logic. Interfaces paired with attributed implementations. |
 | `Models/` | Request, response, and domain model classes |
 | `Config/` | `[ConfigurationModel]` interfaces for typed configuration |
 | `Filters/` | `IExecutionFilter` implementations for cross-cutting concerns |
@@ -107,7 +107,7 @@ When you mark a class with `[HardenedModule]`, the source generator scans the as
 
 | Attribute | What it does |
 |---|---|
-| `[Expose]`, `[Singleton]`, `[Scoped]` | Registers the class in the DI container |
+| `[TransientService]`, `[SingletonService]`, `[ScopedService]` | Registers the class in the DI container |
 | `[Get]`, `[Post]`, `[Put]`, `[Delete]` | Registers route handlers |
 | `[HardenedFunction]` | Registers the Lambda function entry point |
 | `[HardenedCanary]` | Registers canary test methods |
@@ -127,7 +127,7 @@ MyPlatform/
     Application.cs            # [HardenedModule] for the library
     Services/
       IUserService.cs
-      UserService.cs          # [Expose]
+      UserService.cs          # [TransientService]
     Models/
       User.cs
     MyPlatform.Core.csproj    # Uses Hardened.Library.SourceGenerator
@@ -164,7 +164,7 @@ using Hardened.Shared.Runtime.Attributes;
 public partial class Application { }
 ```
 
-Services in the library marked with `[Expose]` are automatically available to any project that references the library. The host project's source generator discovers and includes the library module's registrations.
+Services in the library marked with a registration attribute are automatically available to any project that references the library. The host project's source generator discovers and includes the library module's registrations.
 
 ### Host project
 
@@ -280,14 +280,14 @@ Place `nuget.config` at the solution root so all projects share the same package
 <configuration>
   <packageSources>
     <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-    <add key="github-ipjohnson-org"
-         value="https://nuget.pkg.github.com/ipjohnson-org/index.json" />
+    <add key="github-ipjohnson"
+         value="https://nuget.pkg.github.com/ipjohnson/index.json" />
   </packageSources>
   <packageSourceCredentials>
-    <github-ipjohnson-org>
+    <github-ipjohnson>
       <add key="Username" value="YOUR_GITHUB_USERNAME" />
       <add key="ClearTextPassword" value="%GITHUB_TOKEN%" />
-    </github-ipjohnson-org>
+    </github-ipjohnson>
   </packageSourceCredentials>
 </configuration>
 ```

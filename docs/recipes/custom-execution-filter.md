@@ -34,10 +34,10 @@ This filter logs details about every incoming request and outgoing response.
 
 ```csharp title="Filters/RequestLoggingFilter.cs"
 using Hardened.Requests.Abstract.Execution;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 using Microsoft.Extensions.Logging;
 
-[Expose]
+[TransientService]
 public class RequestLoggingFilter : IExecutionFilter
 {
     private readonly ILogger<RequestLoggingFilter> _logger;
@@ -77,10 +77,10 @@ This filter measures how long each request takes and logs slow requests as warni
 ```csharp title="Filters/PerformanceTimingFilter.cs"
 using System.Diagnostics;
 using Hardened.Requests.Abstract.Execution;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 using Microsoft.Extensions.Logging;
 
-[Expose]
+[TransientService]
 public class PerformanceTimingFilter : IExecutionFilter
 {
     private readonly ILogger<PerformanceTimingFilter> _logger;
@@ -141,10 +141,10 @@ public class ErrorResponse
 
 ```csharp title="Filters/ErrorHandlingFilter.cs"
 using Hardened.Requests.Abstract.Execution;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 using Microsoft.Extensions.Logging;
 
-[Expose]
+[TransientService]
 public class ErrorHandlingFilter : IExecutionFilter
 {
     private readonly ILogger<ErrorHandlingFilter> _logger;
@@ -216,9 +216,9 @@ This filter validates an API key header before allowing the request to proceed.
 
 ```csharp title="Filters/ApiKeyFilter.cs"
 using Hardened.Requests.Abstract.Execution;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
+[TransientService]
 public class ApiKeyFilter : IExecutionFilter
 {
     private const string ApiKeyHeader = "X-API-Key";
@@ -363,7 +363,7 @@ The `IExecutionChain.Context` property provides access to the full request conte
 
 ### Registration
 
-Filters are registered automatically. The `[Expose]` attribute on each filter class registers it with the DI container. The framework discovers all `IExecutionFilter` implementations and adds them to the pipeline in the order specified by their `Order` property.
+Filters are registered automatically. The registration attribute on each filter class registers it with the DI container. The framework discovers all `IExecutionFilter` implementations and adds them to the pipeline in the order specified by their `Order` property.
 
 No manual registration code is needed -- the source generator handles it all.
 

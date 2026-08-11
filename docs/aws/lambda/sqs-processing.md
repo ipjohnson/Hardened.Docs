@@ -129,10 +129,9 @@ The default `ISqsExceptionHandler` logs the exception and marks the message as f
 using Amazon.Lambda.SQSEvents;
 using Hardened.Amz.Function.Sqs.Runtime;
 using Hardened.Requests.Abstract.Execution;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
-[Singleton]
+[SingletonService]
 public class CustomSqsExceptionHandler : ISqsExceptionHandler
 {
     private readonly ILogger<CustomSqsExceptionHandler> _logger;
@@ -163,10 +162,9 @@ SQS handlers run through the Hardened execution pipeline, so `IExecutionFilter` 
 
 ```csharp
 using Hardened.Requests.Abstract.Execution;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
-[Singleton]
+[SingletonService]
 public class MessageTimingFilter : IExecutionFilter
 {
     private readonly ILogger<MessageTimingFilter> _logger;
@@ -212,9 +210,9 @@ public class NotificationMessage
 ```
 
 ```csharp title="Services/NotificationService.cs"
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
+[TransientService]
 public class NotificationService : INotificationService
 {
     private readonly ILogger<NotificationService> _logger;

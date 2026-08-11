@@ -48,7 +48,7 @@ The source generator creates a concrete class (e.g., `DatabaseConfig`) that:
 **Injecting the configuration:**
 
 ```csharp
-[Expose(typeof(IOrderRepository))]
+[TransientService(As = typeof(IOrderRepository))]
 public class SqlOrderRepository : IOrderRepository {
     private readonly IDatabaseConfig _config;
 
@@ -299,11 +299,10 @@ public interface IConfigurationValueAmender {
 
 ### Usage
 
-Register a configuration package with `[Expose]`:
+Register a configuration package with `[SingletonService]`:
 
 ```csharp
-[Expose(typeof(IConfigurationPackage))]
-[Singleton]
+[SingletonService(As = typeof(IConfigurationPackage))]
 public class MyLibraryConfig : IConfigurationPackage {
     public IEnumerable<IConfigurationValueProvider> ConfigurationValueProviders(
         IHardenedEnvironment env) {
@@ -473,7 +472,7 @@ public partial class Application {
 
 ```csharp
 // 3. Inject and use the configuration
-[Expose(typeof(IExternalApiClient))]
+[TransientService(As = typeof(IExternalApiClient))]
 public class ExternalApiClient : IExternalApiClient {
     private readonly IApiConfig _config;
     private readonly HttpClient _http;

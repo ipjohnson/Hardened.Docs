@@ -117,9 +117,9 @@ When deploying, the Lambda function name determines which handler is invoked. Th
 Handlers are resolved from the DI container, so all constructor dependencies are injected automatically. Register services using the standard Hardened DI attributes:
 
 ```csharp title="Services/OrderService.cs"
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
+[TransientService]
 public class OrderService : IOrderService
 {
     private readonly IDynamoDbClientProvider _dynamoDb;
@@ -140,12 +140,12 @@ public class OrderService : IOrderService
 
 | Attribute | Lifetime | Description |
 |---|---|---|
-| `[Expose]` | Transient | New instance per resolution |
-| `[Singleton]` | Singleton | Single instance for the Lambda lifetime |
-| `[Scoped]` | Scoped | One instance per Lambda invocation |
+| `[TransientService]` | Transient | New instance per resolution |
+| `[SingletonService]` | Singleton | Single instance for the Lambda lifetime |
+| `[ScopedService]` | Scoped | One instance per Lambda invocation |
 
 !!! tip
-    Lambda functions maintain a singleton container across warm invocations. Use `[Singleton]` for services that should be reused (such as HTTP clients or DynamoDB clients), and `[Scoped]` for per-invocation state.
+    Lambda functions maintain a singleton container across warm invocations. Use `[SingletonService]` for services that should be reused (such as HTTP clients or DynamoDB clients), and `[ScopedService]` for per-invocation state.
 
 ---
 
@@ -205,10 +205,9 @@ Lambda functions run through the Hardened execution pipeline, which means you ca
 
 ```csharp
 using Hardened.Requests.Abstract.Execution;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
-[Singleton]
+[SingletonService]
 public class LoggingFilter : IExecutionFilter
 {
     private readonly ILogger<LoggingFilter> _logger;

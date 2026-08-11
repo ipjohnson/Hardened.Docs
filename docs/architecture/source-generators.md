@@ -63,19 +63,18 @@ The core generator is the foundation. It runs in every Hardened application proj
 
 #### DI Registrations (`{EntryPoint}.DependencyInjection.cs`)
 
-Scans for all classes with `[Expose]` attributes and generates direct `IServiceCollection` registration calls:
+Scans for all classes with registration attributes and generates direct `IServiceCollection` registration calls:
 
 ```csharp
 // Your code
-[Expose(typeof(IOrderService))]
-[Singleton]
+[SingletonService(As = typeof(IOrderService))]
 public class OrderService : IOrderService { }
 
 // Generated
 serviceCollection.AddSingleton(typeof(IOrderService), typeof(OrderService));
 ```
 
-The generator respects `[Singleton]`, `[Scoped]`, `Try`, and `[ForEnvironment]` to produce the appropriate method call and conditional wrapping.
+The generator respects `[SingletonService]`, `[ScopedService]`, `Using`, and `[IfEnvironment]` to produce the appropriate method call and conditional wrapping.
 
 #### Module Wiring (`{EntryPoint}.Module.cs`)
 
@@ -109,8 +108,7 @@ A subset of the core generator designed for **shared library projects**. It prod
 [HardenedModule]
 public partial class DataAccessModule { }
 
-[Expose(typeof(IRepository))]
-[Singleton]
+[SingletonService(As = typeof(IRepository))]
 public class SqlRepository : IRepository { }
 ```
 
@@ -320,6 +318,6 @@ The generators you reference depend on your project type:
 ## Next Steps
 
 - [Module System](module-system.md) -- How the core generator wires modules together
-- [Dependency Injection](dependency-injection.md) -- How `[Expose]` becomes `AddTransient`/`AddSingleton`
+- [Dependency Injection](dependency-injection.md) -- How registration attributes become `AddTransient`/`AddSingleton`
 - [Configuration System](configuration-system.md) -- How `[ConfigurationModel]` gets a generated implementation
 - [Execution Pipeline](execution-pipeline.md) -- How generated handler invocation classes fit into the filter chain

@@ -77,10 +77,9 @@ public interface ITodoService
 ```
 
 ```csharp title="Services/TodoService.cs"
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
-[Singleton]
+[SingletonService]
 public class TodoService : ITodoService
 {
     private readonly List<Todo> _todos = new();
@@ -143,7 +142,7 @@ public class TodoService : ITodoService
 ```
 
 !!! note
-    `[Singleton]` ensures only one instance of `TodoService` exists for the lifetime of the application. This is important here because the service holds the in-memory list of todos. In a real application, you would use a database and the service could be `[Expose]` (transient) or `[Scoped]` instead.
+    `[SingletonService]` ensures only one instance of `TodoService` exists for the lifetime of the application. This is important here because the service holds the in-memory list of todos. In a real application, you would use a database and the service could be `[TransientService]` or `[ScopedService]` instead.
 
 ### Controller
 

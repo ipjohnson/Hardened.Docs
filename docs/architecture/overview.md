@@ -18,7 +18,7 @@ Hardened takes a different approach:
 | Module Composition | Convention-based discovery | Explicit `[HardenedModule]` with generated `ConfigureModule` |
 
 !!! info "Compile-time vs. Runtime"
-    Every attribute you place in Hardened code (`[Expose]`, `[Get]`, `[ConfigurationModel]`, etc.) is consumed by a source generator at build time. By the time your application runs, all wiring is expressed as plain C# method calls -- no `Activator.CreateInstance`, no `Type.GetCustomAttributes`, no assembly scanning.
+    Every attribute you place in Hardened code (`[SingletonService]`, `[Get]`, `[ConfigurationModel]`, etc.) is consumed by a source generator at build time. By the time your application runs, all wiring is expressed as plain C# method calls -- no `Activator.CreateInstance`, no `Type.GetCustomAttributes`, no assembly scanning.
 
 ---
 
@@ -64,7 +64,7 @@ graph TD
 
 The foundation layer provides:
 
-- **Dependency Injection attributes** -- `[Expose]`, `[Singleton]`, `[Scoped]`, `[ForEnvironment]`
+- **Dependency Injection attributes** -- `[TransientService]`, `[SingletonService]`, `[ScopedService]`, `[IfEnvironment]`
 - **Configuration system** -- `[ConfigurationModel]`, `[FromEnvironmentVariable]`, `IAppConfig`
 - **Module system** -- `[HardenedModule]`, `IApplicationModule`, `IApplicationRoot`
 - **Environment abstraction** -- `IHardenedEnvironment` for environment-aware behavior
@@ -260,7 +260,7 @@ Hardened's compile-time approach comes with specific trade-offs to understand:
 ## Next Steps
 
 - [Module System](module-system.md) -- How `[HardenedModule]` and `IApplicationModule` compose applications
-- [Dependency Injection](dependency-injection.md) -- Compile-time DI with `[Expose]`, `[Singleton]`, `[Scoped]`
+- [Dependency Injection](dependency-injection.md) -- Compile-time DI with `[TransientService]`, `[SingletonService]`, `[ScopedService]`
 - [Execution Pipeline](execution-pipeline.md) -- The filter chain that processes every request
 - [Source Generators](source-generators.md) -- What each of the 7 generators produces
 - [Configuration System](configuration-system.md) -- `[ConfigurationModel]` and environment-aware configuration

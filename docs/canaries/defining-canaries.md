@@ -272,7 +272,7 @@ Each method is discovered and scheduled independently. The `Name` property contr
 
 ## Dependency injection in canaries
 
-Canary classes support constructor injection. Services registered with `[Expose]`, `[Singleton]`, or `[Scoped]` in your application module are available.
+Canary classes support constructor injection. Services registered with `[TransientService]`, `[SingletonService]`, or `[ScopedService]` in your application module are available.
 
 ```csharp
 public class DatabaseCanary

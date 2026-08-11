@@ -75,10 +75,10 @@ public interface IOrderChangeService
 ```
 
 ```csharp title="Services/OrderChangeService.cs"
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 using Microsoft.Extensions.Logging;
 
-[Expose]
+[TransientService]
 public class OrderChangeService : IOrderChangeService
 {
     private readonly ILogger<OrderChangeService> _logger;

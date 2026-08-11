@@ -134,9 +134,9 @@ The most common usage is the `Execute` overload that returns a string:
 
 ```csharp
 using Hardened.Templates.Abstract;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose(typeof(IEmailRenderer))]
+[TransientService(As = typeof(IEmailRenderer))]
 public class EmailRenderer : IEmailRenderer {
     private readonly ITemplateExecutionService _templates;
     private readonly IServiceProvider _serviceProvider;

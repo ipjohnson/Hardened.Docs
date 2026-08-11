@@ -180,10 +180,9 @@ Because the web Lambda runtime uses the same Hardened execution pipeline, all `I
 
 ```csharp
 using Hardened.Requests.Abstract.Execution;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
-[Singleton]
+[SingletonService]
 public class CorsFilter : IExecutionFilter
 {
     public async Task Execute(IExecutionChain chain)

@@ -73,9 +73,9 @@ public interface IOrderValidationService
 ```
 
 ```csharp title="Services/OrderValidationService.cs"
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
+[TransientService]
 public class OrderValidationService : IOrderValidationService
 {
     public (bool IsValid, string? ErrorMessage) Validate(OrderRequest request)
@@ -114,10 +114,10 @@ public interface IOrderService
 ```
 
 ```csharp title="Services/OrderService.cs"
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 using Microsoft.Extensions.Logging;
 
-[Expose]
+[TransientService]
 public class OrderService : IOrderService
 {
     private readonly IOrderValidationService _validationService;
@@ -220,7 +220,7 @@ The `[HardenedFunction("process-order")]` attribute marks the method as a Lambda
 
 ### Service Registration
 
-Both services use `[Expose]` with the default transient lifetime. Each Lambda invocation gets a fresh instance of both `OrderValidationService` and `OrderService`. Constructor injection works exactly as you would expect -- the framework resolves the full dependency graph automatically.
+Both services use `[TransientService]`. Each Lambda invocation gets a fresh instance of both `OrderValidationService` and `OrderService`. Constructor injection works exactly as you would expect -- the framework resolves the full dependency graph automatically.
 
 ### Logging
 

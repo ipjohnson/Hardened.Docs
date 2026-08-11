@@ -1,6 +1,6 @@
 # Environment
 
-The `IHardenedEnvironment` interface provides access to the current runtime environment, including the environment name, command-line arguments, and custom key-value data. It drives environment-specific behavior throughout the framework, including `[ForEnvironment]` filtering and configuration amendments.
+The `IHardenedEnvironment` interface provides access to the current runtime environment, including the environment name, command-line arguments, and custom key-value data. It drives environment-specific behavior throughout the framework, including `[IfEnvironment]` filtering and configuration amendments.
 
 **Package:** `Hardened.Shared.Runtime` (namespace `Hardened.Shared.Runtime.Application`)
 
@@ -45,10 +45,9 @@ public interface IHardenedEnvironment {
 
 ```csharp
 using Hardened.Shared.Runtime.Application;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose(typeof(IFeatureService))]
-[Singleton]
+[SingletonService(As = typeof(IFeatureService))]
 public class FeatureService : IFeatureService {
     private readonly IHardenedEnvironment _env;
 
@@ -91,8 +90,7 @@ var lambdaContext = env.CustomData<ILambdaContext>("LambdaContext");
 The `Arguments` property provides access to the command-line arguments:
 
 ```csharp
-[Expose(typeof(IStartupService))]
-[Singleton]
+[SingletonService(As = typeof(IStartupService))]
 public class ArgParser : IStartupService {
     private readonly IHardenedEnvironment _env;
 
@@ -192,20 +190,19 @@ public partial class Application {
 
 ## Environment in DI Registration
 
-The `[ForEnvironment]` attribute uses the environment name to conditionally register services:
+The `[IfEnvironment]` attribute uses the environment name to conditionally register services:
 
 ```csharp
-[Expose(typeof(IEmailSender))]
-[ForEnvironment("Production")]
+[TransientService(As = typeof(IEmailSender))]
+[IfEnvironment("Production")]
 public class SmtpEmailSender : IEmailSender { }
 
-[Expose(typeof(IEmailSender))]
-[ForEnvironment("Development")]
-[ForEnvironment("Test")]
+[TransientService(As = typeof(IEmailSender))]
+[IfEnvironment("Development", "Test")]
 public class ConsoleEmailSender : IEmailSender { }
 ```
 
-See [Dependency Injection](dependency-injection.md#forenvironment-environment-specific-registration) for details.
+See [Dependency Injection](dependency-injection.md#environment-conditional-registration) for details.
 
 ---
 
@@ -214,8 +211,7 @@ See [Dependency Injection](dependency-injection.md#forenvironment-environment-sp
 The `IConfigurationPackage` interface receives `IHardenedEnvironment`, allowing packages to return different providers per environment:
 
 ```csharp
-[Expose(typeof(IConfigurationPackage))]
-[Singleton]
+[SingletonService(As = typeof(IConfigurationPackage))]
 public class MyConfigPackage : IConfigurationPackage {
     public IEnumerable<IConfigurationValueProvider> ConfigurationValueProviders(
         IHardenedEnvironment env) {
@@ -252,6 +248,6 @@ While Hardened does not enforce specific environment names, the following conven
 
 ## Related Pages
 
-- [Dependency Injection](dependency-injection.md) -- `[ForEnvironment]` for conditional registration
+- [Dependency Injection](dependency-injection.md) -- `[IfEnvironment]` for conditional registration
 - [Configuration](configuration.md) -- environment-aware configuration with `IAppConfig.Amend`
 - [Application Lifecycle](application-lifecycle.md) -- how `IHardenedEnvironment` flows through startup

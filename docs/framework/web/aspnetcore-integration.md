@@ -215,15 +215,14 @@ Here is a complete Hardened web application with ASP.NET Core integration:
 === "IProductRepository.cs"
 
     ```csharp
-    using Hardened.Shared.Runtime.Attributes;
+    using DependencyModules.Runtime.Attributes;
 
     public interface IProductRepository {
         Task<IReadOnlyList<Product>> GetAll();
         Task<Product?> GetById(string id);
     }
 
-    [Expose(typeof(IProductRepository))]
-    [Singleton]
+    [SingletonService(As = typeof(IProductRepository))]
     public class InMemoryProductRepository : IProductRepository {
         private readonly List<Product> _products = new();
 
@@ -278,7 +277,7 @@ app.Run();
 ASP.NET Core logging is available through standard `ILogger<T>` injection, which works seamlessly with Hardened's DI:
 
 ```csharp
-[Expose(typeof(IOrderService))]
+[TransientService(As = typeof(IOrderService))]
 public class OrderService : IOrderService {
     private readonly ILogger<OrderService> _logger;
 
@@ -300,5 +299,5 @@ public class OrderService : IOrderService {
 
 - [Routing](routing.md) -- HTTP routing attributes
 - [Application Lifecycle](../shared/application-lifecycle.md) -- `[HardenedModule]` and startup flow
-- [Dependency Injection](../shared/dependency-injection.md) -- `[Expose]` and lifecycle attributes
+- [Dependency Injection](../shared/dependency-injection.md) -- lifetime attributes and registration
 - [Getting Started: Your First Web App](../../getting-started/your-first-web-app.md) -- step-by-step tutorial

@@ -127,11 +127,10 @@ The runtime registers a default `IBatchProcessorExceptionHandler` that logs exce
 ```csharp
 using Hardened.Amz.Function.Lambda.Runtime.Filter;
 using Hardened.Requests.Abstract.Execution;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 using Microsoft.Extensions.Logging;
 
-[Expose]
-[Singleton]
+[SingletonService]
 public class CustomExceptionHandler : IBatchProcessorExceptionHandler
 {
     public Task<bool> HandleException(
@@ -206,9 +205,9 @@ public partial class Application { }
 ```
 
 ```csharp title="Services/ChangeLogService.cs"
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
+[TransientService]
 public class ChangeLogService : IChangeLogService
 {
     private readonly ILogger<ChangeLogService> _logger;

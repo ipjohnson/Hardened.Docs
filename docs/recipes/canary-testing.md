@@ -58,10 +58,9 @@ public interface IApiClient
 ```
 
 ```csharp title="Services/ApiClient.cs"
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
-[Singleton]
+[SingletonService]
 public class ApiClient : IApiClient
 {
     private readonly HttpClient _httpClient;

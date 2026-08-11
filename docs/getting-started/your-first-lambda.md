@@ -81,9 +81,9 @@ public interface IOrderService
 ```
 
 ```csharp title="Services/OrderService.cs"
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
+[TransientService]
 public class OrderService : IOrderService
 {
     public Task<OrderResponse> ProcessOrder(OrderRequest request)
@@ -280,7 +280,7 @@ At compile time, the Hardened source generators:
 
 1. Found `[HardenedFunction]` and generated the Lambda bootstrap entry point
 2. Generated serialization/deserialization code for your request and response types
-3. Discovered `[Expose]` on `OrderService` and generated DI registrations
+3. Discovered `[TransientService]` on `OrderService` and generated DI registrations
 4. Wired everything together in the `Application` partial class
 
 No `Amazon.Lambda.Core` boilerplate. No `FunctionHandler` string configuration. The source generator handles it all.

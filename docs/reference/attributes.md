@@ -4,74 +4,76 @@ This page is a comprehensive reference for every attribute in the Hardened frame
 
 ---
 
-## Shared (Hardened.Shared.Runtime.Attributes)
+## Service Registration (DependencyModules.Runtime.Attributes)
 
-These attributes form the foundation of the Hardened framework -- dependency injection, configuration, lifecycle, and module wiring.
+Registration is provided by [DependencyModules](https://github.com/ipjohnson/DependencyModules). Hardened's
+generator reads these attributes against its own `[HardenedModule]` entry point, so they work in a
+Hardened application without declaring a `[DependencyModule]`.
 
-### [Expose]
+### [TransientService]
 
-Register a class for dependency injection. The source generator emits `AddTransient`, `AddSingleton`, or `AddScoped` calls at build time based on the class and any accompanying lifecycle attributes.
+Register a class for dependency injection with a transient lifetime. The source generator emits the `IServiceCollection` call at build time. `[SingletonService]` and `[ScopedService]` are identical apart from the lifetime.
 
 | Property | Type | Default | Description |
 |---|---|---|---|
-| `ForServices` | `Type[]` | `[]` (empty) | Interfaces to register the class for. When empty, the class is registered for all interfaces it directly implements. |
-| `Try` | `bool` | `false` | When `true`, only register if no existing registration exists for the service type. |
+| `As` | `Type?` | `null` | The service type to register as. When unset, the first non-capability interface the class implements is inferred; failing that, the class itself. |
+| `Key` | `object?` | `null` | Registers as a keyed service. |
+| `Using` | `RegistrationType` | `Add` | Which registration method to use: `Add`, `Try`, `TryEnumerable` or `Replace`. |
+| `Realm` | `Type?` | `null` | The module realm the registration belongs to. |
 
-**Target:** Class
+**Target:** Class, Method
 
-**Namespace:** `Hardened.Shared.Runtime.Attributes`
+**Namespace:** `DependencyModules.Runtime.Attributes`
 
 ```csharp
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-// Register for all implemented interfaces (transient by default)
-[Expose]
+// Service type inferred from the first non-capability interface
+[TransientService]
 public class OrderService : IOrderService { }
 
 // Register only for a specific interface
-[Expose(typeof(IPaymentGateway))]
+[TransientService(As = typeof(IPaymentGateway))]
 public class StripeGateway : IPaymentGateway, IDisposable { }
 
 // Try-register: only if no prior registration exists
-[Expose(typeof(ILogger), Try = true)]
+[TransientService(As = typeof(ILogger), Using = RegistrationType.Try)]
 public class DefaultLogger : ILogger { }
 ```
 
 ---
 
-### [Singleton]
+### [SingletonService]
 
-Set the DI lifecycle to singleton. Combine with `[Expose]` to register a service as a singleton.
+Register a service with a singleton lifetime -- one instance for the entire application.
 
-**Target:** Class
-**Properties:** None
-**Namespace:** `Hardened.Shared.Runtime.Attributes`
+**Target:** Class, Method
+**Properties:** `As`, `Key`, `Using`, `Realm`
+**Namespace:** `DependencyModules.Runtime.Attributes`
 
 ```csharp
-[Expose]
-[Singleton]
+[SingletonService]
 public class CacheService : ICacheService { }
 ```
 
 ---
 
-### [Scoped]
+### [ScopedService]
 
-Set the DI lifecycle to scoped. The instance is created once per request scope.
+Register a service with a scoped lifetime -- one instance per request scope.
 
-**Target:** Class
-**Properties:** None
-**Namespace:** `Hardened.Shared.Runtime.Attributes`
+**Target:** Class, Method
+**Properties:** `As`, `Key`, `Using`, `Realm`
+**Namespace:** `DependencyModules.Runtime.Attributes`
 
 ```csharp
-[Expose]
-[Scoped]
+[ScopedService]
 public class UnitOfWork : IUnitOfWork { }
 ```
 
 ---
 
-### [ForEnvironment]
+### [IfEnvironment]
 
 Restrict a service registration to specific environment names. The class is only registered in the DI container when `IHardenedEnvironment.Name` matches the specified value.
 
@@ -83,13 +85,12 @@ Restrict a service registration to specific environment names. The class is only
 **Namespace:** `Hardened.Shared.Runtime.Attributes`
 
 ```csharp
-[Expose(typeof(IEmailSender))]
-[ForEnvironment("Production")]
+[TransientService(As = typeof(IEmailSender))]
+[IfEnvironment("Production")]
 public class SmtpEmailSender : IEmailSender { }
 
-[Expose(typeof(IEmailSender))]
-[ForEnvironment("Development")]
-[ForEnvironment("Testing")]
+[TransientService(As = typeof(IEmailSender))]
+[IfEnvironment("Development", "Testing")]
 public class FakeEmailSender : IEmailSender { }
 ```
 
@@ -899,10 +900,11 @@ A consolidated lookup table of every attribute, sorted by namespace.
 
 | Attribute | Namespace | Target | Key Properties |
 |---|---|---|---|
-| `[Expose]` | `Hardened.Shared.Runtime.Attributes` | Class | `ForServices`, `Try` |
-| `[Singleton]` | `Hardened.Shared.Runtime.Attributes` | Class | -- |
-| `[Scoped]` | `Hardened.Shared.Runtime.Attributes` | Class | -- |
-| `[ForEnvironment]` | `Hardened.Shared.Runtime.Attributes` | Class | `Environment` |
+| `[TransientService]` | `DependencyModules.Runtime.Attributes` | Class/Method | `As`, `Key`, `Using`, `Realm` |
+| `[SingletonService]` | `DependencyModules.Runtime.Attributes` | Class/Method | `As`, `Key`, `Using`, `Realm` |
+| `[ScopedService]` | `DependencyModules.Runtime.Attributes` | Class/Method | `As`, `Key`, `Using`, `Realm` |
+| `[CrossWireService]` | `DependencyModules.Runtime.Attributes` | Class/Method | `Lifetime`, `Key`, `Using`, `Realm` |
+| `[IfEnvironment]` | `DependencyModules.Runtime.Attributes` | Class/Method | `Environments` |
 | `[ConfigurationModel]` | `Hardened.Shared.Runtime.Attributes` | Interface/Class | -- |
 | `[FromEnvironmentVariable]` | `Hardened.Shared.Runtime.Attributes` | Property/Field | `EnvironmentVariable` |
 | `[HideConfigurationField]` | `Hardened.Shared.Runtime.Attributes` | Property | -- |

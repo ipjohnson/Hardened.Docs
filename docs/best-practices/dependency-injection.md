@@ -1,6 +1,6 @@
 # Dependency Injection Best Practices
 
-Hardened's compile-time DI system generates all service registrations at build time. This eliminates runtime reflection but also means your attribute choices have direct, visible consequences in the generated code. This page covers opinionated recommendations for getting the most out of `[Expose]`, lifecycle attributes, and related patterns.
+Hardened's compile-time DI system generates all service registrations at build time. This eliminates runtime reflection but also means your attribute choices have direct, visible consequences in the generated code. This page covers opinionated recommendations for getting the most out of the lifetime attributes and related patterns.
 
 ---
 
@@ -10,10 +10,10 @@ The lifecycle you choose affects memory usage, thread safety requirements, and b
 
 ### Transient (Default)
 
-A new instance is created every time the service is requested. This is the default when you use `[Expose]` without a lifecycle attribute.
+A new instance is created every time the service is requested. This is what `[TransientService]` registers.
 
 ```csharp
-[Expose(typeof(IOrderValidator))]
+[TransientService(As = typeof(IOrderValidator))]
 public class OrderValidator : IOrderValidator { }
 ```
 
@@ -33,8 +33,7 @@ public class OrderValidator : IOrderValidator { }
 A single instance is shared for the lifetime of the application. In Lambda, this means the lifetime of the container (across warm invocations).
 
 ```csharp
-[Expose(typeof(ICacheService))]
-[Singleton]
+[SingletonService(As = typeof(ICacheService))]
 public class InMemoryCacheService : ICacheService { }
 ```
 
@@ -58,8 +57,7 @@ public class InMemoryCacheService : ICacheService { }
 A single instance is created per scope. In web applications, each HTTP request is a scope. In Lambda, each invocation is a scope.
 
 ```csharp
-[Expose(typeof(IUserContext))]
-[Scoped]
+[ScopedService(As = typeof(IUserContext))]
 public class UserContext : IUserContext
 {
     public string? UserId { get; set; }
@@ -91,8 +89,7 @@ Never inject a shorter-lived service into a longer-lived one. This is the most c
 
 ```csharp
 // BAD: Scoped service injected into singleton
-[Expose(typeof(INotificationService))]
-[Singleton]
+[SingletonService(As = typeof(INotificationService))]
 public class NotificationService : INotificationService
 {
     private readonly IUserContext _userContext; // Scoped -- captured!
@@ -111,8 +108,7 @@ The `IUserContext` instance injected into the singleton was created in a specifi
 If a singleton needs access to a scoped or transient service, inject `IServiceProvider` and resolve it per-operation:
 
 ```csharp
-[Expose(typeof(INotificationService))]
-[Singleton]
+[SingletonService(As = typeof(INotificationService))]
 public class NotificationService : INotificationService
 {
     private readonly IServiceProvider _serviceProvider;
@@ -156,8 +152,7 @@ public interface IOrderWriter
     Task Delete(string id);
 }
 
-[Expose(typeof(IOrderReader), typeof(IOrderWriter))]
-[Singleton]
+[CrossWireService(Lifetime = ServiceLifetime.Singleton)]
 public class DynamoDbOrderRepository : IOrderReader, IOrderWriter { }
 ```
 
@@ -180,11 +175,11 @@ Always register services against interfaces, not concrete types. This enables mo
 
 ```csharp
 // GOOD: Register against interface
-[Expose(typeof(IOrderService))]
+[TransientService(As = typeof(IOrderService))]
 public class OrderService : IOrderService { }
 
 // AVOID: Register as concrete type
-[Expose]
+[TransientService]
 public class OrderService { }
 ```
 
@@ -195,7 +190,7 @@ public class OrderService { }
 
 ## Controlling Registration with ForServices
 
-By default, `[Expose]` with no arguments registers the class for all implemented interfaces. When a class implements multiple interfaces and you only want to expose some of them, use `ForServices`:
+With no arguments, the service type is inferred from the first non-capability interface the class implements. When a class implements several and you want a specific one, use `As`:
 
 ```csharp
 public interface IOrderService { }
@@ -203,11 +198,11 @@ public interface IDisposable { }
 public interface IHealthCheck { }
 
 // Without ForServices: registered for IOrderService, IDisposable, and IHealthCheck
-[Expose]
+[TransientService]
 public class OrderService : IOrderService, IDisposable, IHealthCheck { }
 
 // With ForServices: registered only for IOrderService
-[Expose(typeof(IOrderService))]
+[TransientService(As = typeof(IOrderService))]
 public class OrderService : IOrderService, IDisposable, IHealthCheck { }
 ```
 
@@ -221,7 +216,7 @@ public class OrderService : IOrderService, IDisposable, IHealthCheck { }
 
 ## Environment-Specific Registrations
 
-Use `[ForEnvironment]` to swap implementations between environments without conditional logic:
+Use `[IfEnvironment]` to swap implementations between environments without conditional logic:
 
 ```csharp
 public interface IPaymentGateway
@@ -229,9 +224,8 @@ public interface IPaymentGateway
     Task<PaymentResult> Charge(decimal amount, string token);
 }
 
-[Expose(typeof(IPaymentGateway))]
-[ForEnvironment("Production")]
-[Singleton]
+[SingletonService(As = typeof(IPaymentGateway))]
+[IfEnvironment("Production")]
 public class StripePaymentGateway : IPaymentGateway
 {
     public Task<PaymentResult> Charge(decimal amount, string token)
@@ -240,9 +234,8 @@ public class StripePaymentGateway : IPaymentGateway
     }
 }
 
-[Expose(typeof(IPaymentGateway))]
-[ForEnvironment("Development")]
-[ForEnvironment("Test")]
+[TransientService(As = typeof(IPaymentGateway))]
+[IfEnvironment("Development", "Test")]
 public class FakePaymentGateway : IPaymentGateway
 {
     public Task<PaymentResult> Charge(decimal amount, string token)
@@ -252,23 +245,22 @@ public class FakePaymentGateway : IPaymentGateway
 }
 ```
 
-### Guidelines for ForEnvironment
+### Guidelines for IfEnvironment
 
 1. **Always have a registration for every environment.** If `IPaymentGateway` is registered for Production but not Development, the DI container will throw at startup in Development.
 
-2. **Use `[ForEnvironment]` for infrastructure, not business logic.** Swapping a real Stripe client for a fake is appropriate. Branching business rules by environment is not -- use configuration for that.
+2. **Use `[IfEnvironment]` for infrastructure, not business logic.** Swapping a real Stripe client for a fake is appropriate. Branching business rules by environment is not -- use configuration for that.
 
 3. **Combine with `Try = true` for defaults:**
 
     ```csharp
     // Default: used unless overridden
-    [Expose(typeof(IEmailSender), Try = true)]
+    [TransientService(As = typeof(IEmailSender), Using = RegistrationType.Try)]
     public class ConsoleEmailSender : IEmailSender { }
 
     // Production override
-    [Expose(typeof(IEmailSender))]
-    [ForEnvironment("Production")]
-    [Singleton]
+    [SingletonService(As = typeof(IEmailSender))]
+    [IfEnvironment("Production")]
     public class SesEmailSender : IEmailSender { }
     ```
 
@@ -280,13 +272,11 @@ The `Try` property registers a service only if nothing else has already register
 
 ```csharp
 // In a library module: provides a default
-[Expose(typeof(ISerializer), Try = true)]
-[Singleton]
+[SingletonService(As = typeof(ISerializer), Using = RegistrationType.Try)]
 public class JsonSerializer : ISerializer { }
 
 // In the host project: overrides the default
-[Expose(typeof(ISerializer))]
-[Singleton]
+[SingletonService(As = typeof(ISerializer))]
 public class CustomSerializer : ISerializer { }
 ```
 
@@ -314,13 +304,13 @@ If `ServiceA` depends on `ServiceB` and `ServiceB` depends on `ServiceA`, resolu
 
 ```csharp
 // CIRCULAR: Will throw at runtime
-[Expose(typeof(IServiceA))]
+[TransientService(As = typeof(IServiceA))]
 public class ServiceA : IServiceA
 {
     public ServiceA(IServiceB serviceB) { }
 }
 
-[Expose(typeof(IServiceB))]
+[TransientService(As = typeof(IServiceB))]
 public class ServiceB : IServiceB
 {
     public ServiceB(IServiceA serviceA) { }
@@ -333,16 +323,16 @@ public class ServiceB : IServiceB
 
     ```csharp
     // Extract the shared concern into a third service
-    [Expose(typeof(ISharedLogic))]
+    [TransientService(As = typeof(ISharedLogic))]
     public class SharedLogic : ISharedLogic { }
 
-    [Expose(typeof(IServiceA))]
+    [TransientService(As = typeof(IServiceA))]
     public class ServiceA : IServiceA
     {
         public ServiceA(ISharedLogic shared) { }
     }
 
-    [Expose(typeof(IServiceB))]
+    [TransientService(As = typeof(IServiceB))]
     public class ServiceB : IServiceB
     {
         public ServiceB(ISharedLogic shared) { }
@@ -352,7 +342,7 @@ public class ServiceB : IServiceB
 2. **Use lazy resolution.** As a last resort, inject `IServiceProvider` and resolve one of the services lazily:
 
     ```csharp
-    [Expose(typeof(IServiceA))]
+    [TransientService(As = typeof(IServiceA))]
     public class ServiceA : IServiceA
     {
         private readonly IServiceProvider _provider;
@@ -445,9 +435,9 @@ public interface IApiConfig
 | Default lifecycle | Use transient (no attribute) for stateless services | Make everything singleton "just in case" |
 | Singleton | Use for shared state, expensive resources, AWS clients | Inject scoped/transient services into singletons |
 | Scoped | Use for per-request state | Use scoped in Lambda unless you need per-invocation isolation |
-| Interface registration | `[Expose(typeof(IMyService))]` | `[Expose]` on concrete types that are injected elsewhere |
-| Library defaults | `[Expose(typeof(IFoo), Try = true)]` | Hard-register defaults in libraries |
-| Environment switching | `[ForEnvironment]` per environment | Conditional logic in service constructors |
+| Interface registration | `[TransientService(As = typeof(IMyService))]` | A bare attribute on concrete types that are injected elsewhere by class |
+| Library defaults | `[SingletonService(As = typeof(IFoo), Using = RegistrationType.Try)]` | Hard-register defaults in libraries |
+| Environment switching | `[IfEnvironment]` per environment | Conditional logic in service constructors |
 | Configuration | One `[ConfigurationModel]` per concern | Monolithic config interfaces |
 | Circular deps | Extract shared abstractions | Rely on `IServiceProvider` as a primary pattern |
 
