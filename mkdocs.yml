@@ -1,8 +1,8 @@
 site_name: Hardened
 site_description: Documentation for the Hardened ecosystem — a compile-time, source-generated .NET framework
-site_url: https://ipjohnson-org.github.io/Hardened.Docs
-repo_url: https://github.com/ipjohnson-org/Hardened.Docs
-repo_name: ipjohnson-org/Hardened.Docs
+site_url: https://ipjohnson.github.io/Hardened.Docs
+repo_url: https://github.com/ipjohnson/Hardened.Docs
+repo_name: ipjohnson/Hardened.Docs
 
 theme:
   name: material
@@ -66,7 +66,7 @@ plugins:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/ipjohnson-org
+      link: https://github.com/ipjohnson
 
 nav:
   - Home: index.md
