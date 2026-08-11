@@ -66,10 +66,9 @@ public interface IProductService
 ```
 
 ```csharp title="Services/ProductService.cs"
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
-[Singleton]
+[SingletonService]
 public class ProductService : IProductService
 {
     private readonly List<Product> _products = new();

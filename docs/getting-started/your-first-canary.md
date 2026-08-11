@@ -185,9 +185,9 @@ public interface IApiClient
 ```
 
 ```csharp title="Services/ApiClient.cs"
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
+[TransientService]
 public class ApiClient : IApiClient
 {
     private readonly HttpClient _httpClient;
@@ -268,7 +268,7 @@ At compile time, the Hardened source generators:
 
 1. Found `[HardenedCanary]` methods and generated Lambda entry points for each
 2. Generated scheduling metadata (frequency, unit, flight style) for CDK deployment
-3. Discovered `[Expose]` services and generated DI registrations
+3. Discovered registered services and generated DI registrations
 4. Wired `ITestContext` injection for step-based execution
 
 The canary runs as a Lambda function on a CloudWatch Events schedule, with each step reported as a metric.

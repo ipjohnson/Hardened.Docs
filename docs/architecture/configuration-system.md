@@ -406,7 +406,7 @@ public partial class Application {
 }
 
 // 3. Consume in a service
-[Expose(typeof(IDataAccess))]
+[TransientService(As = typeof(IDataAccess))]
 public class DataAccess : IDataAccess {
     private readonly IDatabaseConfig _config;
 

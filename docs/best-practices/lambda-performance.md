@@ -26,7 +26,7 @@ The result is that a Hardened Lambda function's cold start consists almost entir
 
 ### No Reflection at Runtime
 
-Every `[Expose]`, `[Get]`, `[ConfigurationModel]`, and `[HardenedFunction]` attribute is consumed at build time. The generated code is plain C# method calls:
+Every `[SingletonService]`, `[Get]`, `[ConfigurationModel]`, and `[HardenedFunction]` attribute is consumed at build time. The generated code is plain C# method calls:
 
 ```csharp
 // What the source generator produces (conceptually):
@@ -101,8 +101,7 @@ Connection establishment is one of the most expensive operations during a Lambda
 ### DynamoDB Client as Singleton
 
 ```csharp
-[Expose(typeof(IDynamoDbClientProvider))]
-[Singleton]
+[SingletonService(As = typeof(IDynamoDbClientProvider))]
 public class DynamoDbClientProvider : IDynamoDbClientProvider
 {
     private readonly IAmazonDynamoDB _client;
@@ -122,8 +121,7 @@ public class DynamoDbClientProvider : IDynamoDbClientProvider
 ### SQS Client as Singleton
 
 ```csharp
-[Expose(typeof(ISqsClient))]
-[Singleton]
+[SingletonService(As = typeof(ISqsClient))]
 public class SqsClientWrapper : ISqsClient
 {
     private readonly IAmazonSQS _client;
@@ -140,8 +138,7 @@ public class SqsClientWrapper : ISqsClient
 ### HttpClient as Singleton
 
 ```csharp
-[Expose(typeof(IApiClient))]
-[Singleton]
+[SingletonService(As = typeof(IApiClient))]
 public class ApiClient : IApiClient
 {
     private static readonly HttpClient _httpClient = new()
@@ -168,8 +165,7 @@ public class ApiClient : IApiClient
 `IStartupService` runs async initialization logic once during cold start. Use it for operations that must complete before the first invocation:
 
 ```csharp
-[Expose(typeof(IStartupService))]
-[Singleton]
+[SingletonService(As = typeof(IStartupService))]
 public class CacheWarmupService : IStartupService
 {
     private readonly IDynamoDbClientProvider _dbProvider;
@@ -217,8 +213,7 @@ Lambda memory allocation directly affects CPU allocation and cold-start speed. M
 Add a filter to measure cold-start duration:
 
 ```csharp
-[Expose]
-[Singleton]
+[SingletonService]
 public class ColdStartMetricsFilter : IExecutionFilter
 {
     private static bool _isColdStart = true;
@@ -345,7 +340,7 @@ This is the single most impactful recommendation for Lambda performance. Hardene
 
 | Instead of | Use |
 |---|---|
-| Runtime assembly scanning | Hardened's `[Expose]` attributes (compile-time) |
+| Runtime assembly scanning | Hardened's registration attributes (compile-time) |
 | `Activator.CreateInstance` | Constructor injection via DI |
 | Runtime configuration binding | `[ConfigurationModel]` with source-generated implementation |
 | Dynamic route registration | `[Get]`, `[Post]`, `[Put]`, `[Delete]` attributes |

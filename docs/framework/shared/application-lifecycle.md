@@ -37,7 +37,7 @@ For a library or reusable module:
 public partial class MyLibraryModule { }
 ```
 
-The source generator produces the full `ConfigureModule` implementation by scanning the assembly for `[Expose]`, `[ConfigurationModel]`, and other Hardened attributes. The partial class is completed with all the registration code at compile time.
+The source generator produces the full `ConfigureModule` implementation by scanning the assembly for registration attributes, `[ConfigurationModel]`, and the rest. The partial class is completed with all the registration code at compile time.
 
 !!! note
     The class must be declared `partial` so the source generator can extend it with the generated code.
@@ -66,10 +66,10 @@ public interface IApplicationModule {
 
 When your application starts, the framework calls `ConfigureModule` on the root module. This triggers a chain of operations:
 
-1. The module registers all `[Expose]`-decorated services found in its assembly
+1. The module registers all registered services found in its assembly
 2. It processes `[ConfigurationModel]` interfaces and registers their generated implementations
 3. It loads dependent modules (other `IApplicationModule` implementations) and calls their `ConfigureModule`
-4. It applies `[ForEnvironment]` filtering based on the current `IHardenedEnvironment`
+4. It applies `[IfEnvironment]` filtering based on the current `IHardenedEnvironment`
 
 You generally do not need to implement `IApplicationModule` manually -- the source generator handles it. However, you can add custom logic to your partial class:
 
@@ -149,11 +149,10 @@ The return value indicates whether startup was successful:
 ### Usage
 
 ```csharp
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 using Hardened.Shared.Runtime.Application;
 
-[Expose(typeof(IStartupService))]
-[Singleton]
+[SingletonService(As = typeof(IStartupService))]
 public class DatabaseMigrationStartup : IStartupService {
     public async Task<bool> Startup(IServiceProvider rootProvider) {
         var dbContext = rootProvider.GetRequiredService<IDbContext>();
@@ -173,8 +172,7 @@ public class DatabaseMigrationStartup : IStartupService {
 Multiple startup services can be registered. They are executed in registration order:
 
 ```csharp
-[Expose(typeof(IStartupService))]
-[Singleton]
+[SingletonService(As = typeof(IStartupService))]
 public class CacheWarmupStartup : IStartupService {
     public async Task<bool> Startup(IServiceProvider rootProvider) {
         var cache = rootProvider.GetRequiredService<ICacheService>();
@@ -196,7 +194,7 @@ The complete application lifecycle follows this sequence:
 ```mermaid
 graph TD
     A["[HardenedModule] discovered"] --> B[ConfigureModule called]
-    B --> C[Services registered via [Expose]]
+    B --> C[Services registered by attribute]
     C --> D[Configuration models registered]
     D --> E[Dependent modules loaded]
     E --> F[IAppConfig amendments applied]
@@ -211,7 +209,7 @@ graph TD
 ### Detailed Steps
 
 1. **Module Discovery** -- The source generator finds the `[HardenedModule]` class and generates `ConfigureModule`
-2. **Service Registration** -- All `[Expose]`-decorated classes are registered in the `IServiceCollection`
+2. **Service Registration** -- All attributed classes are registered in the `IServiceCollection`
 3. **Configuration** -- `[ConfigurationModel]` interfaces get their generated implementations registered
 4. **Module Composition** -- Dependent modules are discovered and their `ConfigureModule` methods are called
 5. **Configuration Amendments** -- `IAppConfig.ProvideValue` and `IAppConfig.Amend` calls are processed
@@ -246,7 +244,7 @@ When the main application references `MyLibrary`, the source generator detects `
 
 ## Related Pages
 
-- [Dependency Injection](dependency-injection.md) -- `[Expose]` and lifecycle attributes
+- [Dependency Injection](dependency-injection.md) -- lifetime attributes and registration
 - [Configuration](configuration.md) -- `[ConfigurationModel]` and `IAppConfig`
 - [Environment](environment.md) -- `IHardenedEnvironment` and environment-specific behavior
 - [Architecture: Module System](../../architecture/module-system.md) -- high-level module architecture

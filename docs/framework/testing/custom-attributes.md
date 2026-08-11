@@ -160,7 +160,7 @@ public async Task FastTimeout_ThrowsOnSlowCall(IApiClient client) {
 
 ## IHardenedTestEnvironmentAttribute
 
-Configure the test environment name and custom values. This runs before dependency registration, so `[ForEnvironment]`-filtered services are affected.
+Configure the test environment name and custom values. This runs before dependency registration, so `[IfEnvironment]`-filtered services are affected.
 
 ### Definition
 

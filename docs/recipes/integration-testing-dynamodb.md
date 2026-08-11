@@ -72,9 +72,9 @@ public interface IUserRepository
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Hardened.Amz.DynamoDbClient;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
+[TransientService]
 public class UserRepository : IUserRepository
 {
     private readonly IDynamoDbClientProvider _clientProvider;

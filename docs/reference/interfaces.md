@@ -117,8 +117,7 @@ public interface IStartupService {
 | `Startup(IServiceProvider)` | `Task<bool>` | Perform startup logic. Return `true` to indicate success, `false` to signal startup failure. |
 
 ```csharp
-[Expose(typeof(IStartupService))]
-[Singleton]
+[SingletonService(As = typeof(IStartupService))]
 public class CacheWarmer : IStartupService {
     public async Task<bool> Startup(IServiceProvider rootProvider) {
         var cache = rootProvider.GetRequiredService<ICacheService>();
@@ -201,8 +200,7 @@ public interface IConfigurationPackage {
 | `ConfigurationValueAmenders(IHardenedEnvironment)` | `IEnumerable<IConfigurationValueAmender>` | Return amenders that modify configuration values. |
 
 ```csharp
-[Expose(typeof(IConfigurationPackage))]
-[Singleton]
+[SingletonService(As = typeof(IConfigurationPackage))]
 public class MyLibraryConfigPackage : IConfigurationPackage {
     public IEnumerable<IConfigurationValueProvider> ConfigurationValueProviders(
         IHardenedEnvironment env) {
@@ -429,8 +427,7 @@ public interface IExecutionFilter {
 | `Last` | `int.MaxValue` | Last filter in the chain. |
 
 ```csharp
-[Expose(typeof(IExecutionFilter))]
-[Singleton]
+[SingletonService(As = typeof(IExecutionFilter))]
 public class RequestLoggingFilter : IExecutionFilter {
     private readonly ILogger _logger;
 
@@ -752,7 +749,7 @@ public interface IDynamoDbClientProvider {
 | `GetClient(string)` | `AmazonDynamoDBClient` | Get a DynamoDB client by name. Empty string returns the default client. |
 
 ```csharp
-[Expose(typeof(IOrderRepository))]
+[TransientService(As = typeof(IOrderRepository))]
 public class DynamoOrderRepository : IOrderRepository {
     private readonly AmazonDynamoDBClient _client;
 
@@ -829,8 +826,7 @@ public interface ITemplateHelper {
 | `Execute(ITemplateExecutionContext, params object[])` | `ValueTask<object>` | Execute the helper with the given template context and arguments. |
 
 ```csharp
-[Expose(typeof(ITemplateHelper))]
-[Singleton]
+[SingletonService(As = typeof(ITemplateHelper))]
 public class FormatDateHelper : ITemplateHelper {
     public ValueTask<object> Execute(
         ITemplateExecutionContext context, params object[] arguments) {

@@ -34,7 +34,7 @@ public interface IDatabaseConfig {
 The source generator produces a concrete class implementing this interface. The configuration model is automatically registered in the DI container as a singleton, so you can inject it anywhere:
 
 ```csharp
-[Expose(typeof(IOrderRepository))]
+[TransientService(As = typeof(IOrderRepository))]
 public class SqlOrderRepository : IOrderRepository {
     private readonly IDatabaseConfig _config;
 
@@ -225,12 +225,11 @@ public interface IConfigurationPackage {
 ### Usage
 
 ```csharp
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 using Hardened.Shared.Runtime.Application;
 using Hardened.Shared.Runtime.Configuration;
 
-[Expose(typeof(IConfigurationPackage))]
-[Singleton]
+[SingletonService(As = typeof(IConfigurationPackage))]
 public class DatabaseConfigPackage : IConfigurationPackage {
     public IEnumerable<IConfigurationValueProvider> ConfigurationValueProviders(
         IHardenedEnvironment env) {
@@ -247,7 +246,7 @@ public class DatabaseConfigPackage : IConfigurationPackage {
 ```
 
 !!! tip
-    `IConfigurationPackage` is automatically discovered through DI. Register it with `[Expose]` and Hardened will invoke it during configuration setup.
+    `IConfigurationPackage` is automatically discovered through DI. Register it with `[SingletonService]` and Hardened will invoke it during configuration setup.
 
 ---
 
@@ -290,7 +289,7 @@ public partial class Application {
 
 ```csharp
 // 3. Inject and use the configuration
-[Expose(typeof(IExternalApiClient))]
+[TransientService(As = typeof(IExternalApiClient))]
 public class ExternalApiClient : IExternalApiClient {
     private readonly IApiConfig _config;
     private readonly HttpClient _http;
@@ -333,7 +332,7 @@ Configuration values are resolved in the following order, with later values over
 
 ## Related Pages
 
-- [Dependency Injection](dependency-injection.md) -- how `[Expose]` registers services
+- [Dependency Injection](dependency-injection.md) -- how services are registered
 - [Application Lifecycle](application-lifecycle.md) -- when configuration is initialized
 - [Environment](environment.md) -- how `IHardenedEnvironment` drives configuration
 - [Architecture: Configuration System](../../architecture/configuration-system.md) -- high-level configuration architecture

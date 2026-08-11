@@ -124,9 +124,9 @@ public interface IGreetingService
 ```
 
 ```csharp title="Services/GreetingService.cs"
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
+[TransientService]
 public class GreetingService : IGreetingService
 {
     public string Greet(string name)
@@ -136,7 +136,7 @@ public class GreetingService : IGreetingService
 }
 ```
 
-The `[Expose]` attribute registers `GreetingService` as the implementation of `IGreetingService` in the DI container. The default lifetime is **transient**. Use `[Singleton]` or `[Scoped]` if you need a different lifetime.
+The `[TransientService]` attribute registers `GreetingService` as the implementation of `IGreetingService` in the DI container -- the service type is inferred from the first interface it implements. Use `[SingletonService]` or `[ScopedService]` if you need a different lifetime.
 
 Now inject the service into the controller:
 
@@ -245,7 +245,7 @@ dotnet test
 At compile time, the Hardened source generators:
 
 1. Scanned your assembly for `[Get]`, `[Post]`, `[Put]`, `[Delete]` attributes and generated route registrations
-2. Found `[Expose]` on `GreetingService` and generated DI registration code
+2. Found `[TransientService]` on `GreetingService` and generated DI registration code
 3. Wired up the `Application` partial class with a `ConfigureModule` method that registers everything
 4. Generated `UseHardened()` to plug into the ASP.NET Core middleware pipeline
 

@@ -15,7 +15,7 @@ MyService/
     Program.cs                # Entry point (web apps only)
     Controllers/              # Route handlers ([Get], [Post], etc.)
     Handlers/                 # Lambda function handlers ([HardenedFunction])
-    Services/                 # Business logic with [Expose]
+    Services/                 # Business logic with registration attributes
     Models/                   # Request/response DTOs, domain models
     Config/                   # [ConfigurationModel] interfaces
     Filters/                  # IExecutionFilter implementations
@@ -100,7 +100,7 @@ public partial class Application : IApplicationModule
 }
 ```
 
-Use this sparingly. If you find yourself registering many services manually, consider whether those services should have `[Expose]` attributes instead.
+Use this sparingly. If you find yourself registering many services manually, consider whether those services should have registration attributes instead.
 
 ---
 
@@ -177,7 +177,7 @@ using Hardened.Shared.Runtime.Attributes;
 public partial class Application { }
 ```
 
-Every service in the library marked with `[Expose]` is automatically discovered and composed into any host project that references it. No additional wiring is required in the host.
+Every service in the library marked with a registration attribute is automatically discovered and composed into any host project that references it. No additional wiring is required in the host.
 
 ### Composition Is Automatic
 
@@ -209,8 +209,7 @@ The `Hardened.Library.SourceGenerator` is purpose-built for reusable modules. It
 2. **Use `Try = true` for default implementations.** This lets host projects override registrations without conflicts:
 
     ```csharp
-    [Expose(typeof(IEmailSender), Try = true)]
-    [Singleton]
+    [SingletonService(As = typeof(IEmailSender), Using = RegistrationType.Try)]
     public class SmtpEmailSender : IEmailSender { }
     ```
 
@@ -273,7 +272,7 @@ public interface IOrderService
     Task<OrderResponse> GetOrder(string orderId);
 }
 
-[Expose(typeof(IOrderService))]
+[TransientService(As = typeof(IOrderService))]
 public class OrderService : IOrderService
 {
     private readonly IOrderRepository _repository;
@@ -309,8 +308,7 @@ public class OrderService : IOrderService
 Use `IExecutionFilter` for concerns that span multiple handlers -- authentication, logging, error handling, metrics. Do not use filters as a replacement for service logic:
 
 ```csharp
-[Expose]
-[Singleton]
+[SingletonService]
 public class RequestLoggingFilter : IExecutionFilter
 {
     public int Order => ExecutionFilterOrder.Init + 1;

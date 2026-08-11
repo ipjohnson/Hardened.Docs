@@ -98,7 +98,7 @@ Automated canary testing framework that runs as AWS Lambda functions.
 
 ## Key Features
 
-- **Compile-time DI** — `[Expose]`, `[Singleton]`, `[Scoped]` attributes generate registration code at build time
+- **Compile-time DI** — `[TransientService]`, `[SingletonService]`, `[ScopedService]` attributes generate registration code at build time
 - **Source-generated routing** — `[Get]`, `[Post]`, `[Put]`, `[Delete]` with automatic parameter binding
 - **Execution pipeline** — `IExecutionFilter` chain with ordering for cross-cutting concerns
 - **Configuration system** — `[ConfigurationModel]` interfaces with `[FromEnvironmentVariable]` binding

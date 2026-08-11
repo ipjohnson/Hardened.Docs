@@ -26,9 +26,9 @@ A filter receives an `IExecutionChain` and must call `chain.Next()` to pass cont
 
 ```csharp
 using Hardened.Requests.Abstract.Execution;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose(typeof(IExecutionFilter))]
+[TransientService(As = typeof(IExecutionFilter))]
 public class TimingFilter : IExecutionFilter {
     private readonly ILogger<TimingFilter> _logger;
 
@@ -158,7 +158,7 @@ Filters with lower order values execute first (outer layer), and filters with hi
 Register a filter for all requests by exposing it as `IExecutionFilter`:
 
 ```csharp
-[Expose(typeof(IExecutionFilter))]
+[TransientService(As = typeof(IExecutionFilter))]
 public class AuthenticationFilter : IExecutionFilter {
     public async Task Execute(IExecutionChain chain) {
         var authHeader = chain.Context.Request.Headers
@@ -274,9 +274,9 @@ Here is a complete example of a custom error-handling filter:
 
 ```csharp
 using Hardened.Requests.Abstract.Execution;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose(typeof(IExecutionFilter))]
+[TransientService(As = typeof(IExecutionFilter))]
 public class ErrorHandlingFilter : IExecutionFilter {
     private readonly ILogger<ErrorHandlingFilter> _logger;
 

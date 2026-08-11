@@ -1,6 +1,6 @@
 # NuGet Setup
 
-Hardened packages are hosted on **GitHub Packages** under the `ipjohnson-org` organization. Before you can install any Hardened packages, you need to configure NuGet to authenticate with this feed.
+Hardened packages are hosted on **GitHub Packages** under the `ipjohnson` account. Before you can install any Hardened packages, you need to configure NuGet to authenticate with this feed.
 
 ---
 
@@ -33,14 +33,14 @@ Add a `nuget.config` file to the root of your repository. This ensures all devel
 <configuration>
   <packageSources>
     <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-    <add key="github-ipjohnson-org"
-         value="https://nuget.pkg.github.com/ipjohnson-org/index.json" />
+    <add key="github-ipjohnson"
+         value="https://nuget.pkg.github.com/ipjohnson/index.json" />
   </packageSources>
   <packageSourceCredentials>
-    <github-ipjohnson-org>
+    <github-ipjohnson>
       <add key="Username" value="YOUR_GITHUB_USERNAME" />
       <add key="ClearTextPassword" value="%GITHUB_TOKEN%" />
-    </github-ipjohnson-org>
+    </github-ipjohnson>
   </packageSourceCredentials>
 </configuration>
 ```
@@ -89,11 +89,11 @@ If you prefer not to use a `nuget.config` file, you can add the source globally 
 
 ```bash
 dotnet nuget add source \
-  --name github-ipjohnson-org \
+  --name github-ipjohnson \
   --username YOUR_GITHUB_USERNAME \
   --password ghp_your_token_here \
   --store-password-in-clear-text \
-  https://nuget.pkg.github.com/ipjohnson-org/index.json
+  https://nuget.pkg.github.com/ipjohnson/index.json
 ```
 
 !!! note
@@ -109,10 +109,10 @@ Run the following command to confirm the source is configured correctly:
 dotnet nuget list source
 ```
 
-You should see `github-ipjohnson-org` in the output. To verify you can fetch packages:
+You should see `github-ipjohnson` in the output. To verify you can fetch packages:
 
 ```bash
-dotnet package search Hardened --source github-ipjohnson-org --prerelease
+dotnet package search Hardened --source github-ipjohnson --prerelease
 ```
 
 This should return a list of available Hardened packages.
@@ -124,7 +124,7 @@ This should return a list of available Hardened packages.
 | Problem | Solution |
 |---|---|
 | `401 Unauthorized` on restore | Verify your PAT has the `read:packages` scope and has not expired |
-| `Unable to load the service index` | Check the source URL is exactly `https://nuget.pkg.github.com/ipjohnson-org/index.json` |
+| `Unable to load the service index` | Check the source URL is exactly `https://nuget.pkg.github.com/ipjohnson/index.json` |
 | `%GITHUB_TOKEN%` used literally | Ensure the `GITHUB_TOKEN` environment variable is set in your current shell session |
 | Packages not found | Add `--prerelease` to your search or restore — Hardened packages use pre-release versioning |
 

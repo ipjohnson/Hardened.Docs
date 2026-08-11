@@ -72,10 +72,10 @@ public interface INotificationService
 ```
 
 ```csharp title="Services/NotificationService.cs"
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 using Microsoft.Extensions.Logging;
 
-[Expose]
+[TransientService]
 public class NotificationService : INotificationService
 {
     private readonly ILogger<NotificationService> _logger;

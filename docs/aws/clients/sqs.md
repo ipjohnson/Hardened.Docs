@@ -31,9 +31,9 @@ Inject `ISqsClient` into your services and call `SendMessage<T>()`:
 
 ```csharp
 using Hardened.SqsClient;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
+[TransientService]
 public class OrderService : IOrderService
 {
     private readonly ISqsClient _sqsClient;
@@ -206,9 +206,9 @@ public class OrderSubmittedMessage
 
 ```csharp title="Services/OrderService.cs"
 using Hardened.SqsClient;
-using Hardened.Shared.Runtime.Attributes;
+using DependencyModules.Runtime.Attributes;
 
-[Expose]
+[TransientService]
 public class OrderService : IOrderService
 {
     private readonly ISqsClient _sqsClient;

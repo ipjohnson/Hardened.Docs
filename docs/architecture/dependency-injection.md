@@ -1,6 +1,6 @@
 # Dependency Injection
 
-Hardened replaces runtime assembly scanning with **compile-time dependency injection**. You annotate classes with attributes like `[Expose]`, `[Singleton]`, and `[Scoped]`, and the source generator produces direct calls to `Microsoft.Extensions.DependencyInjection` at build time. There is no reflection at runtime.
+Hardened replaces runtime assembly scanning with **compile-time dependency injection**. You annotate classes with attributes like `[TransientService]`, `[SingletonService]`, and `[ScopedService]`, and the source generator produces direct calls to `Microsoft.Extensions.DependencyInjection` at build time. There is no reflection at runtime.
 
 ---
 
@@ -29,7 +29,7 @@ Both approaches have drawbacks. Manual registration is tedious and error-prone. 
 In Hardened, you decorate your class with attributes:
 
 ```csharp
-[Expose(typeof(IMyService))]
+[TransientService(As = typeof(IMyService))]
 public class MyService : IMyService {
     // ...
 }
@@ -48,27 +48,31 @@ No reflection. No scanning. The registration is a plain method call compiled int
 
 ## Attributes
 
-### `[Expose]`
+### `[TransientService]`
 
-The primary attribute for registering a service in the DI container.
+One attribute per lifetime, and the attribute *is* the registration.
 
 ```csharp
-namespace Hardened.Shared.Runtime.Attributes;
+namespace DependencyModules.Runtime.Attributes;
 
-public class ExposeAttribute : Attribute {
-    public ExposeAttribute(params Type[] forServices) { }
-
-    public Type[] ForServices { get; }
-    public bool Try { get; set; } = false;
+public abstract class BaseServiceAttribute : Attribute, IServiceRegistrationAttribute {
+    public object? Key { get; set; }
+    public Type? As { get; set; }
+    public RegistrationType Using { get; set; } = RegistrationType.Add;
+    public Type? Realm { get; set; }
 }
 ```
+
+`As` names the service type; leaving it unset infers the first non-capability interface the class
+implements. `Using` selects the `IServiceCollection` method -- `Add`, `Try`, `TryEnumerable` or
+`Replace`.
 
 #### Basic Usage
 
 Register a class as an implementation of an interface:
 
 ```csharp
-[Expose(typeof(IOrderService))]
+[TransientService(As = typeof(IOrderService))]
 public class OrderService : IOrderService {
     public OrderService(IRepository repository) { }
 }
@@ -84,7 +88,7 @@ serviceCollection.AddTransient(typeof(IOrderService), typeof(OrderService));
 Register a class for multiple service types:
 
 ```csharp
-[Expose(typeof(IReader), typeof(IWriter))]
+[CrossWireService]
 public class ReadWriteService : IReader, IWriter {
     // ...
 }
@@ -101,7 +105,7 @@ serviceCollection.AddTransient(typeof(IWriter), typeof(ReadWriteService));
 Omit the type parameter to register the class as itself:
 
 ```csharp
-[Expose]
+[TransientService]
 public class HelperUtility {
     // ...
 }
@@ -117,7 +121,7 @@ serviceCollection.AddTransient(typeof(HelperUtility), typeof(HelperUtility));
 Set `Try = true` to register only if no other registration exists for the service type. This generates `TryAddTransient` (or `TryAddSingleton`/`TryAddScoped`) instead of `AddTransient`:
 
 ```csharp
-[Expose(typeof(ILogger)), Try = true]
+[SingletonService(As = typeof(ILogger), Using = RegistrationType.Try)]
 public class DefaultLogger : ILogger {
     // ...
 }
@@ -130,13 +134,12 @@ serviceCollection.TryAddTransient(typeof(ILogger), typeof(DefaultLogger));
 
 This is useful for providing default implementations in library modules that consumers can override.
 
-### `[Singleton]`
+### `[SingletonService]`
 
-Changes the service lifetime to singleton (one instance for the entire application):
+Registers with a singleton lifetime (one instance for the entire application):
 
 ```csharp
-[Expose(typeof(ICacheService))]
-[Singleton]
+[SingletonService(As = typeof(ICacheService))]
 public class InMemoryCacheService : ICacheService {
     // ...
 }
@@ -147,13 +150,12 @@ public class InMemoryCacheService : ICacheService {
 serviceCollection.AddSingleton(typeof(ICacheService), typeof(InMemoryCacheService));
 ```
 
-### `[Scoped]`
+### `[ScopedService]`
 
-Changes the service lifetime to scoped (one instance per request/scope):
+Registers with a scoped lifetime (one instance per request/scope):
 
 ```csharp
-[Expose(typeof(IUserContext))]
-[Scoped]
+[ScopedService(As = typeof(IUserContext))]
 public class UserContext : IUserContext {
     // ...
 }
@@ -164,26 +166,23 @@ public class UserContext : IUserContext {
 serviceCollection.AddScoped(typeof(IUserContext), typeof(UserContext));
 ```
 
-### Default Lifetime
+### Choosing a Lifetime
 
-When neither `[Singleton]` nor `[Scoped]` is specified, the default lifetime is **Transient** -- a new instance is created each time the service is requested.
+There is no implicit default: the attribute you choose *is* the lifetime. `[TransientService]` creates a new instance each time the service is requested.
 
-### `[ForEnvironment]`
+### `[IfEnvironment]`
 
 Restricts a service registration to specific environments:
 
 ```csharp
-[Expose(typeof(IEmailSender))]
-[Singleton]
-[ForEnvironment("Production")]
+[SingletonService(As = typeof(IEmailSender))]
+[IfEnvironment("Production")]
 public class SmtpEmailSender : IEmailSender {
     // ...
 }
 
-[Expose(typeof(IEmailSender))]
-[Singleton]
-[ForEnvironment("Development")]
-[ForEnvironment("Test")]
+[SingletonService(As = typeof(IEmailSender))]
+[IfEnvironment("Development", "Test")]
 public class FakeEmailSender : IEmailSender {
     // ...
 }
@@ -199,10 +198,10 @@ if (environment.Matches("Development", "Test")) {
 }
 ```
 
-The `[ForEnvironment]` attribute can be applied multiple times. Multiple values on the same class are OR-ed together (the service is registered if the environment matches any of them).
+The `[IfEnvironment]` attribute can be applied multiple times. Multiple values on the same class are OR-ed together (the service is registered if the environment matches any of them).
 
 !!! note "Environment Ordering"
-    Services without `[ForEnvironment]` are registered first, followed by environment-specific services. This means environment-specific registrations can override defaults when `Try = false` (the default).
+    Services without `[IfEnvironment]` are registered first, followed by environment-specific services. This means environment-specific registrations can override defaults when `Try = false` (the default).
 
 ---
 
@@ -244,7 +243,7 @@ public partial class Application : IApplicationModule {
             DependencyRegistry<Application>.ApplyRegistration(
                 environment, serviceCollection, this);
 
-            // 5. Register [Expose] services (non-environment-specific first)
+            // 5. Register registered services (non-environment-specific first)
             serviceCollection.AddTransient(typeof(IOrderService), typeof(OrderService));
             serviceCollection.AddSingleton(typeof(ICacheService), typeof(InMemoryCacheService));
 
@@ -269,8 +268,8 @@ The generated code follows a specific registration order:
 2. **Runtime module providers** -- Services from runtime attributes (`[AspNetCoreRuntime.Module]`, etc.)
 3. **Sub-modules** -- Services from the `Modules()` method
 4. **DependencyRegistry registrations** -- Compile-time registrations from library references
-5. **Non-environment services** -- `[Expose]` services without `[ForEnvironment]`
-6. **Environment-specific services** -- `[Expose]` services with `[ForEnvironment]`
+5. **Non-environment services** -- registered services without `[IfEnvironment]`
+6. **Environment-specific services** -- registered services with `[IfEnvironment]`
 7. **User-defined registrations** -- The `RegisterDependencies()` method
 
 This ordering ensures that more specific registrations (environment-specific, user-defined) can override more general ones.
@@ -279,15 +278,14 @@ This ordering ensures that more specific registrations (environment-specific, us
 
 ## DependencyRegistry&lt;T&gt; and Library Composition
 
-When a library project uses `[HardenedModule]` with the `Hardened.Library.SourceGenerator`, its `[Expose]` services are registered via `DependencyRegistry<T>`. This enables seamless composition:
+When a library project uses `[HardenedModule]` with the `Hardened.Library.SourceGenerator`, its registered services are registered via `DependencyRegistry<T>`. This enables seamless composition:
 
 ```csharp
 // In MyLibrary project
 [HardenedModule]
 public partial class MyLibraryModule { }
 
-[Expose(typeof(IDataAccess))]
-[Singleton]
+[SingletonService(As = typeof(IDataAccess))]
 public class SqlDataAccess : IDataAccess { }
 ```
 
@@ -309,7 +307,7 @@ The `ShouldRegisterModule` method on `DependencyRegistry<T>` prevents duplicate 
 | Flexibility | Can register anything at runtime | Attribute-driven with `RegisterDependencies` escape hatch |
 
 !!! tip "The Best of Both Worlds"
-    The `RegisterDependencies()` method gives you full access to `IServiceCollection` for cases where attributes are insufficient -- third-party library registration, factory patterns, or conditional logic beyond what `[ForEnvironment]` supports.
+    The `RegisterDependencies()` method gives you full access to `IServiceCollection` for cases where attributes are insufficient -- third-party library registration, factory patterns, or conditional logic beyond what `[IfEnvironment]` supports.
 
 ---
 
@@ -326,8 +324,7 @@ public interface IOrderWriter {
     Task SaveOrder(Order order);
 }
 
-[Expose(typeof(IOrderReader), typeof(IOrderWriter))]
-[Scoped]
+[CrossWireService(Lifetime = ServiceLifetime.Scoped)]
 public class OrderRepository : IOrderReader, IOrderWriter {
     private readonly IDbConnection _db;
 
@@ -344,15 +341,14 @@ public class OrderRepository : IOrderReader, IOrderWriter {
 
 ```csharp
 // In a library module -- provides a default
-[Expose(typeof(INotificationService)), Try = true]
-[Singleton]
+[SingletonService]
+[SingletonService(As = typeof(INotificationService), Using = RegistrationType.Try)]
 public class NoOpNotificationService : INotificationService {
     public Task Notify(string message) => Task.CompletedTask;
 }
 
 // In the application -- overrides the default
-[Expose(typeof(INotificationService))]
-[Singleton]
+[SingletonService(As = typeof(INotificationService))]
 public class SlackNotificationService : INotificationService {
     public Task Notify(string message) => ...;
 }
@@ -361,15 +357,12 @@ public class SlackNotificationService : INotificationService {
 ### Environment-Specific Implementations
 
 ```csharp
-[Expose(typeof(ISecretStore))]
-[Singleton]
-[ForEnvironment("Production")]
-[ForEnvironment("Staging")]
+[SingletonService(As = typeof(ISecretStore))]
+[IfEnvironment("Production", "Staging")]
 public class AwsSecretStore : ISecretStore { }
 
-[Expose(typeof(ISecretStore))]
-[Singleton]
-[ForEnvironment("Development")]
+[SingletonService(As = typeof(ISecretStore))]
+[IfEnvironment("Development")]
 public class LocalFileSecretStore : ISecretStore { }
 ```
 

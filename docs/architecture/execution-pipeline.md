@@ -240,8 +240,7 @@ sequenceDiagram
 ### Basic Filter
 
 ```csharp
-[Expose(typeof(IExecutionFilter))]
-[Singleton]
+[SingletonService(As = typeof(IExecutionFilter))]
 public class RequestLoggingFilter : IExecutionFilter {
     private readonly ILogger<RequestLoggingFilter> _logger;
 
@@ -266,8 +265,7 @@ public class RequestLoggingFilter : IExecutionFilter {
 A filter can terminate the pipeline early by setting the response and not calling `chain.Next()`:
 
 ```csharp
-[Expose(typeof(IExecutionFilter))]
-[Singleton]
+[SingletonService(As = typeof(IExecutionFilter))]
 public class ApiKeyFilter : IExecutionFilter {
     public Task Execute(IExecutionChain chain) {
         var apiKey = chain.Context.Request.Headers["X-Api-Key"].FirstOrDefault();

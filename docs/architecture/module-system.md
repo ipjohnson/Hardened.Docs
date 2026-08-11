@@ -22,7 +22,7 @@ The `partial` keyword is essential. The source generator extends this class at b
 - An implementation of `IApplicationModule.ConfigureModule()`
 - A `CreateServiceProvider()` method that builds the DI container
 - A `ConfigurationProvider` nested class for configuration management
-- DI registration code for all `[Expose]`-attributed services in the project
+- DI registration code for all attributed services in the project
 
 !!! warning "Must Be Partial"
     If you forget the `partial` keyword, the source generator cannot extend the class and compilation will fail. The class must always be declared as `public partial class`.
@@ -121,7 +121,7 @@ graph TD
     C --> F["Iterates sub-modules"]
     C --> G["Calls ConfigureServiceCollection"]
     D --> H["DependencyRegistry check"]
-    D --> I["Register all [Expose] services"]
+    D --> I["Register all registered services"]
     D --> J["Process runtime module attributes"]
     D --> K["Apply DependencyRegistry registrations"]
     E --> L["Yield IConfigurationValueProviders"]
@@ -179,7 +179,7 @@ public partial class Application : IApplicationModule {
             DependencyRegistry<Application>.ApplyRegistration(
                 environment, serviceCollection, this);
 
-            // Register discovered [Expose] services
+            // Register discovered registered services
             serviceCollection.AddTransient(typeof(IMyService), typeof(MyService));
             serviceCollection.AddSingleton(typeof(ICacheService), typeof(CacheService));
 
@@ -323,7 +323,7 @@ Library projects use `[HardenedModule]` with the `Hardened.Library.SourceGenerat
 public partial class SharedServicesModule { }
 ```
 
-Library modules participate in the same `DependencyRegistry<T>` pattern, so their `[Expose]` services are automatically registered when the library is referenced.
+Library modules participate in the same `DependencyRegistry<T>` pattern, so their registered services are automatically registered when the library is referenced.
 
 ---
 
@@ -362,11 +362,10 @@ public interface IStartupService {
 }
 ```
 
-Register it as any other service using `[Expose]` and `[Singleton]`. The framework calls all registered `IStartupService` implementations during application bootstrap, passing the root service provider.
+Register it as any other service using `[SingletonService]`. The framework calls all registered `IStartupService` implementations during application bootstrap, passing the root service provider.
 
 ```csharp
-[Expose(typeof(IStartupService))]
-[Singleton]
+[SingletonService(As = typeof(IStartupService))]
 public class DatabaseMigrationService : IStartupService {
     public async Task<bool> Startup(IServiceProvider rootProvider) {
         var db = rootProvider.GetRequiredService<IDatabase>();
@@ -400,7 +399,7 @@ sequenceDiagram
     App->>SC: ProcessModuleProviders (runtime attributes)
     App->>Reg: ApplyRegistration(env, sc, this)
     Reg->>SC: Execute all registered lambdas
-    App->>SC: Register [Expose] services
+    App->>SC: Register registered services
     App->>App: RegisterDependencies (if defined)
     App->>SP: BuildServiceProvider()
     App->>App: Run IStartupService instances
@@ -411,6 +410,6 @@ sequenceDiagram
 
 ## Next Steps
 
-- [Dependency Injection](dependency-injection.md) -- Deep dive into `[Expose]`, `[Singleton]`, `[Scoped]`
+- [Dependency Injection](dependency-injection.md) -- Deep dive into `[TransientService]`, `[SingletonService]`, `[ScopedService]`
 - [Configuration System](configuration-system.md) -- How `Configure()` and `IAppConfig` integrate with modules
 - [Source Generators](source-generators.md) -- Details on what each generator produces
