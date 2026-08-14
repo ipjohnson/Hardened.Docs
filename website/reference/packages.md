@@ -42,8 +42,10 @@ Source generator packages are referenced as analysers:
 
 | Package | Contents |
 |---|---|
-| `Hardened.Templates.Abstract` | `[TemplatePackage]`, `[TemplateHelper]`, `ITemplateHelper`, `SafeString` |
-| `Hardened.Templates.Runtime` | The template engine and its built-in helpers |
+| `Hardened.Templates.RazorBlade` | `[RazorBladeTemplateLibrary]`, `IRazorBladeTemplateSource`, `RazorBladeTemplate`. Renders `.cshtml` with no ASP.NET Core dependency |
+
+`ITemplateEngine` — the seam a rendering engine implements — lives in `Hardened.Requests.Abstract`,
+so nothing depends on RazorBlade to name a view.
 
 ### Console
 
@@ -60,7 +62,6 @@ Source generator packages are referenced as analysers:
 | `Hardened.Web.SourceGenerator` | Route tables and request handlers for `[Get]`, `[Post]`, `[Put]` |
 | `Hardened.Function.SourceGenerator` | Function handlers for `[HardenedFunction]` |
 | `Hardened.Console.SourceGenerator` | Console entry points and command definitions |
-| `Hardened.Templates.SourceGenerator` | Compiled templates and helper registration |
 | `Hardened.OpenApi.SourceGenerator` | Models, service interfaces, handlers, routes and validation from an OpenAPI document |
 | `Hardened.SourceGenerator` | The shared generator library the others build on. Not referenced directly |
 

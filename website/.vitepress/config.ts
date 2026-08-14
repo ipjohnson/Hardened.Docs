@@ -84,6 +84,7 @@ export default defineConfig({
             { text: 'Parameter binding', link: '/guide/parameter-binding' },
             { text: 'The execution pipeline', link: '/guide/execution-pipeline' },
             { text: 'Generating from OpenAPI', link: '/guide/openapi' },
+            { text: 'Content negotiation', link: '/guide/content-negotiation' },
             { text: 'Templates', link: '/guide/templates' },
           ],
         },

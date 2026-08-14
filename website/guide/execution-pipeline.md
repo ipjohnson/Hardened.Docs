@@ -61,6 +61,10 @@ The response carries a *value*, not bytes. `Response.ResponseValue` is what the 
 serialisation is a filter later in the chain. A filter that wants to change the payload changes the
 value, and does not have to know how it will be written.
 
+Which serializer writes it is decided per request from the client's `Accept` header — see
+[Content negotiation](/guide/content-negotiation). That is why a handler can return one model and
+have it serialised as JSON for one caller and [rendered as HTML](/guide/templates) for another.
+
 ## Ordering
 
 Filters are sorted by an integer. Lower runs earlier — that is, further from the handler.

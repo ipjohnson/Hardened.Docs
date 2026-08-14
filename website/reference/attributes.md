@@ -48,8 +48,8 @@ All take `As` to narrow the service type, and `Using` to choose the registration
 | `[Handler]` | Class | Marks an implementation of a [generated OpenAPI service interface](/guide/openapi) |
 | `[FromBody]` | Parameter | Binds from the request body |
 | `[FromServices]` | Parameter | Binds from the container |
-| `[Template(name)]` | Method | Renders the return value through a named template |
-| `[RawResponse(contentType?)]` | Method | Writes the return value without serialising. Defaults to `text/plain` |
+| `[Template(name)]` | Method | Makes a [named view](/guide/templates) available for the return value. The client's `Accept` decides whether it is used |
+| `[RawResponse(contentType?)]` | Method | [Commits](/guide/content-negotiation#forcing-a-content-type) the response to a content type and writes the value unstructured. Defaults to `text/plain` |
 | `[AuthorizeActivities]` | Method, class | Names the activities a caller must be authorised for |
 
 `ICustomBindingAttribute` is the interface an attribute implements to bind a parameter itself — see
@@ -84,12 +84,14 @@ All take `As` to narrow the service type, and `Using` to choose the registration
 
 ## Templates
 
-`Hardened.Templates.Abstract`
+`Hardened.Templates.RazorBlade`
 
 | Attribute | Target | Purpose |
 |---|---|---|
-| `[TemplatePackage]` | Assembly | `Extensions`, `Token` — which files are templates and what delimits a token |
-| `[TemplateHelper(token, lifecycle?)]` | Class | Registers a <span v-pre>`{{ $token }}`</span> helper. Lifecycle defaults to `Singleton` |
+| `[RazorBladeTemplateLibrary]` | Class | Registers the RazorBlade engine and its serializer on a module |
+
+Views are registered by name through `IRazorBladeTemplateSource` rather than by an attribute — see
+[Templates](/guide/templates#registering-views-by-name).
 
 ## Console
 
