@@ -1,5 +1,8 @@
+node_modules/
+website/.vitepress/dist/
+website/.vitepress/cache/
+.DS_Store
+
+# Leftovers from the MkDocs site this replaced. Safe to delete from the working tree.
 site/
-__pycache__/
-*.pyc
 .venv/
-venv/
