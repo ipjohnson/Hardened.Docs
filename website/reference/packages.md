@@ -42,10 +42,12 @@ Source generator packages are referenced as analysers:
 
 | Package | Contents |
 |---|---|
-| `Hardened.Templates.RazorBlade` | `[RazorBladeTemplateLibrary]`, `IRazorBladeTemplateSource`, `RazorBladeTemplate`. Renders `.cshtml` with no ASP.NET Core dependency |
+| `Hardened.Templates.RazorBlade` | `HardenedRazorTemplates`, `HardenedHtmlTemplate<T>`. Renders `.cshtml` with no ASP.NET Core dependency |
 
-`ITemplateEngine` — the seam a rendering engine implements — lives in `Hardened.Requests.Abstract`,
-so nothing depends on RazorBlade to name a view.
+`IHardenedResponseOutput<T>` — what a view implements — and the `[TemplateBase]` /
+`[TemplateContentType]` vocabulary a rendering engine's marker declares both live in
+`Hardened.Requests.Abstract`, so nothing depends on RazorBlade to name a view or to ship another
+engine.
 
 ### Console
 
