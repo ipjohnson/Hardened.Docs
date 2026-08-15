@@ -73,6 +73,37 @@ Token names belong to the route, not to the position, so two routes may share a 
 name their tokens differently — `/users/{id}` alongside `/users/{userId}/posts/{postId}` binds
 correctly in both.
 
+### How much a token matches
+
+**A token matches exactly one segment.** `/users/{id}` answers `/users/42` and not `/users/42/posts`
+— a path deeper than the route declares is not a match, and returns 404.
+
+That is what makes a route's shape mean something: an API serves the paths it declares and nothing
+else, so a client can tell a real endpoint from a typo, and a generated OpenAPI document describes
+the same set of paths the router accepts.
+
+### Matching the rest of the path
+
+Prefix a token with `*` to take everything that remains, separators included. It has to be the last
+token in the route:
+
+```csharp
+[Get("/assets/{*path}")]
+public Stream Asset(string path) => _files.Open(path);   // /assets/img/logo.png -> "img/logo.png"
+```
+
+The asterisk says how much to match, not what to call it: `{*path}` binds to a parameter named
+`path`. A literal in the same position still wins, so `/assets/index` reaches an `[Get("/assets/index")]`
+handler if one exists.
+
+A catch-all cannot be written in an OpenAPI document — a path template expression is a parameter
+name and nothing more — so a route generated from a specification is always single-segment, and a
+document generated from a `{*path}` route describes it as `{path}`.
+
+**Changed 2026-08-15.** Every token used to match the rest of the path whether or not it was marked,
+so `/users/{id}` accepted `/users/42/anything/at/all` and no route could describe a single segment.
+A route that was relying on it needs the `*`.
+
 ## Prefixing with `[BasePath]`
 
 `[BasePath]` on the class prefixes every route in it:
