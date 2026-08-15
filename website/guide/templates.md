@@ -160,7 +160,7 @@ compiler has to bind:
 private static readonly IHardenedResponseOutput<OrderListModel> _outputCheck_List = new Views.Orders();
 ```
 
-A mismatch reads "cannot convert Views.Orders to IHardenedResponseOutput<OrderListModel>", naming both
+A mismatch reads `cannot convert Views.Orders to IHardenedResponseOutput<OrderListModel>`, naming both
 types. That is the one mechanism that works across a generator boundary — another generator's output
 cannot be inspected, but code can be emitted that the compiler binds against it. It is the same
 property that makes a route change break a `.cshtml` at build time.
