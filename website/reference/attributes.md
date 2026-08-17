@@ -50,7 +50,6 @@ All take `As` to narrow the service type, and `Using` to choose the registration
 | `[FromServices]` | Parameter | Binds from the container |
 | `[Output<T>]` | Method | Hands the response to a [view or other output](/guide/templates) instead of serialising it. Takes the response out of negotiation: unsupported `Accept` is a `406` |
 | `[RawResponse(contentType?)]` | Method | [Commits](/guide/content-negotiation#forcing-a-content-type) the response to a content type and writes the value unstructured. Defaults to `text/plain` |
-| `[AuthorizeActivities]` | Method, class | Names the activities a caller must be authorised for |
 
 `ICustomBindingAttribute` is the interface an attribute implements to bind a parameter itself — see
 [Parameter binding](/guide/parameter-binding#custom-binding).
