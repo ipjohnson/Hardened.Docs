@@ -169,6 +169,5 @@ Nothing there knows what a table or a key looks like.
 
 ::: warning Docker has to be running
 Testcontainers needs a Docker daemon. On a machine without one, these tests fail at container
-startup rather than skipping — which is deliberate, since a silently skipped data test is worse than
-a failing one.
+startup rather than skipping.
 :::
