@@ -7,17 +7,18 @@ dotnet new install Hardened.Templates
 ```
 
 ```bash
-dotnet new hardened-web -n Greeter
-cd Greeter
-dotnet run --project src/Greeter.Host
+dotnet new hardened-web -n Todos
+cd Todos
+dotnet run --project src/Todos.Host
 ```
 
 ```console
-$ curl localhost:5080/greeting/world
-{"message":"Hello, world!"}
+$ curl localhost:5080/todos
+[{"id":1,"title":"Read the generated code","done":true},{"id":2,"title":"Add an endpoint","done":false}]
 ```
 
-The first run opens a reference page at `/docs`.
+The generated application is a todo API: list them, read one, create one, remove one. It prints the
+address of a reference page at `/docs` on startup.
 
 ::: danger Analyzers do not travel through a package reference
 A project that references `Hardened.Web.Runtime` and nothing else compiles cleanly and answers 404
@@ -37,7 +38,7 @@ one place, and lay the projects out so the host can be swapped without touching 
 ## hardened-web
 
 ```bash
-dotnet new hardened-web -n Greeter [options]
+dotnet new hardened-web -n Todos [options]
 ```
 
 | Option | Values | Default |
@@ -61,11 +62,11 @@ with `HTPL001` rather than failing at deploy time.
 ### What you get
 
 ```
-Greeter.sln
+Todos.sln
 Directory.Packages.props        every version, in one place
-src/Greeter/                    the implementation. Knows nothing about where it runs
-src/Greeter.Host/               which runtime hosts it, and Program.cs
-tests/Greeter.Tests/            tests, against the library rather than the host
+src/Todos/                      the implementation. Knows nothing about where it runs
+src/Todos.Host/                 which runtime hosts it, and Program.cs
+tests/Todos.Tests/              tests, against the library rather than the host
 ```
 
 Swapping `--host` changes only the middle project. The library and the tests are identical whichever
@@ -80,8 +81,8 @@ hosting diagnostics — instrumentation packages that subscribe to the ASP.NET `
 names see nothing under Kestrel. See [the Kestrel host's trade-offs][kestrel].
 
 `aws-lambda` puts the application behind API Gateway. The host project loses its `Program.cs` — the
-generator writes the entry point AWS invokes — and gains a `Greeter.Harness` project that runs the
-same application locally over HTTP, so `dotnet run --project src/Greeter.Harness` still gives you
+generator writes the entry point AWS invokes — and gains a `Todos.Harness` project that runs the
+same application locally over HTTP, so `dotnet run --project src/Todos.Harness` still gives you
 something to curl.
 
 [kestrel]: https://github.com/ipjohnson/Hardened.Framework/blob/main/src/Web/Hardened.Web.Kestrel.Runtime/README.md
@@ -112,7 +113,7 @@ compiling until your service implements the new method.
 It is served **in the `development` environment only**. Widen it by naming more environments:
 
 ```csharp
-[HardenedOpenApiUi(Title = "Greeter", Environments = "development,staging")]
+[HardenedOpenApiUi(Title = "Todos", Environments = "development,staging")]
 ```
 
 The environment is `HARDENED_ENVIRONMENT`, which defaults to `development` — see
@@ -220,7 +221,7 @@ to prefer, but adding a package by hand needs
 `EmitCompilerGeneratedFiles` is already on in every template:
 
 ```
-src/Greeter/obj/Debug/net8.0/generated/     one directory per generator
+src/Todos/obj/Debug/net8.0/generated/       one directory per generator
 ```
 
 Build first. That directory holds the routing table, the handler for each route, the parameter

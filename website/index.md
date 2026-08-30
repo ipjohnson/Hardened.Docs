@@ -100,7 +100,7 @@ Or skip the wiring — `dotnet new hardened-web` writes all of it, with tests:
 
 ```bash
 dotnet new install Hardened.Templates
-dotnet new hardened-web -n Greeter
+dotnet new hardened-web -n Todos
 ```
 
 Set `EmitCompilerGeneratedFiles` in the project file and the routing table, the handler and the

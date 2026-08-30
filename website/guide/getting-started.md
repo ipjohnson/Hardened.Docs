@@ -8,21 +8,22 @@ Hardened ships as NuGet packages on nuget.org, split across two repositories. A 
 
 ```bash
 dotnet new install Hardened.Templates
-dotnet new hardened-web -n Greeter
-cd Greeter
-dotnet run --project src/Greeter.Host
+dotnet new hardened-web -n Todos
+cd Todos
+dotnet run --project src/Todos.Host
 ```
 
 ```console
-$ curl localhost:5080/greeting/world
-{"message":"Hello, world!"}
+$ curl localhost:5080/todos
+[{"id":1,"title":"Read the generated code","done":true},{"id":2,"title":"Add an endpoint","done":false}]
 ```
 
-That is a working API with tests, a reference page at `/docs`, and every package version pinned in
-one place. [Project templates](/guide/project-templates) covers the options — the host, the
-contract, Lambda, libraries.
+That is a working todo API with tests, a reference page at `/docs`, and every package version pinned
+in one place. It prints the address of the page on startup, so the first thing it serves is a list
+of everything it serves. [Project templates](/guide/project-templates) covers the options — the
+host, the contract, Lambda, libraries.
 
-The rest of this page assembles the same thing by hand.
+The rest of this page builds a smaller application by hand.
 
 ::: warning Everything is prerelease
 `dotnet add package` needs `--prerelease` or it finds nothing. The templates pin explicit versions
