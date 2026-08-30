@@ -100,6 +100,7 @@ components:
     Problem:
       type: object
       properties:
+        type:   { type: string }
         title:  { type: string }
         status: { type: integer, format: int32 }
         detail: { type: string }
