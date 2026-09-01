@@ -1,6 +1,7 @@
 # Authorization
 
-A handler says what it needs; the pipeline decides whether the caller has it.
+A handler says what it needs; the pipeline decides whether the caller has it. Who the caller is
+was established one step earlier, by [Authentication](/guide/authentication).
 
 Every way of declaring authorization produces a `Requirement`. Every requirement on a handler is
 **conjoined** into a single one, exposed as `IExecutionRequestHandlerInfo.Requirement`, and the
