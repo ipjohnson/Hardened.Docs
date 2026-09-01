@@ -9,6 +9,11 @@ const repos = {
   docs: 'https://github.com/ipjohnson/Hardened.Docs',
 };
 
+// The one declared package version. Pages write %HARDENED_VERSION% and the substitution below
+// rewrites it everywhere, code fences included, so the next release bump is this line. The site
+// went two releases stale silently while four pages each carried their own copy.
+const hardenedVersion = '0.18.0-rc1000';
+
 export default defineConfig({
   title: 'Hardened',
   description:
@@ -26,6 +31,30 @@ export default defineConfig({
     // Shiki ships no Smithy grammar. Kotlin's is close enough for annotations, braces and strings,
     // and the fence still reads `smithy`.
     languageAlias: { smithy: 'kotlin' },
+
+    config(md) {
+      // Substitutes the declared version into every token, fences included - Vue interpolation
+      // is disabled inside code blocks, which is exactly where package versions live.
+      md.core.ruler.push('hardened_version', state => {
+        const substitute = (token: { content: string; children?: unknown }) => {
+          if (token.content.includes('%HARDENED_VERSION%')) {
+            token.content = token.content.split('%HARDENED_VERSION%').join(hardenedVersion);
+          }
+
+          const children = (token as { children?: { content: string }[] }).children;
+
+          if (children) {
+            for (const child of children) {
+              substitute(child);
+            }
+          }
+        };
+
+        for (const token of state.tokens) {
+          substitute(token);
+        }
+      });
+    },
   },
 
   head: [
