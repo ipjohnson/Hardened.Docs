@@ -105,20 +105,57 @@ Every one is a `record` carrying `[HttpStatus]`, so the dispatch reads the statu
 | `Created<T>(T Value, string Location)` | 201 | sends `Value`, sets `Location` |
 | `Accepted(string? Location = null)` | 202 | |
 | `NoContent()` | 204 | no body is serialised |
+| `NotModified(string? ETag = null)` | 304 | |
+| `BadRequest(string? Detail = null)` | 400 | |
 | `Unauthorized(string? Detail = null, AuthorizationChallenge? Challenge = null)` | 401 | sets `WWW-Authenticate` |
+| `PaymentRequired(string? Detail = null)` | 402 | |
 | `Forbidden(string? Detail = null)` | 403 | |
 | `NotFound(string Resource, string? Detail = null)` | 404 | |
+| `MethodNotAllowed(string Allow)` | 405 | sets `Allow` |
+| `NotAcceptable()` | 406 | |
+| `RequestTimeout(string? Detail = null)` | 408 | |
 | `Conflict(string? Detail = null)` | 409 | |
 | `Gone(string? Detail = null)` | 410 | |
 | `PreconditionFailed(string? Detail = null)` | 412 | |
+| `ContentTooLarge(string? Detail = null)` | 413 | |
+| `UnsupportedMediaType(string? Detail = null)` | 415 | |
+| `UnprocessableContent(string? Detail = null)` | 422 | |
+| `PreconditionRequired(string? Detail = null)` | 428 | |
 | `RateLimited(TimeSpan RetryAfter, string? Detail = null)` | 429 | sets `Retry-After` |
+| `InternalServerError(string? Detail = null)` | 500 | |
+| `NotImplemented(string? Detail = null)` | 501 | |
+| `BadGateway(string? Detail = null)` | 502 | |
 | `ServiceUnavailable(TimeSpan? After = null, string? Detail = null)` | 503 | sets `Retry-After` |
+| `GatewayTimeout(string? Detail = null)` | 504 | |
 
-Each has a `<T>` form carrying your own error body instead of the default problem shape —
-`NotFound<ApiError>(ApiError Body)`, and so on. The wire receives the `Body`, not the wrapper.
+Each error status has a `<T>` form carrying your own body instead of the default problem shape:
+`NotFound<ApiError>(ApiError Body)`, and so on. The wire receives the `Body`, not the wrapper. The
+four that carry nothing by design have none, since there is no body to type: `Accepted`,
+`NoContent`, `NotAcceptable` and `NotModified`.
 
 `Created<T>` and the `<T>` forms implement `ICarriesResponseBody`, which is how the dispatch knows
 to send the payload rather than the case.
+
+### A status with no record
+
+`Status<TCode, TBody>` covers the registered codes that have no record of their own. The status is a
+marker type, and `Http` ships one for every registered code:
+
+```csharp
+Response<Pet, Status<Http.ImATeapot, Problem>, Status<Http.Locked, Problem>>
+```
+
+Those are two distinct types over one payload schema, so a set declaring both compiles where
+`Response<Pet, Problem, Problem>` is `CS0457`. That is what the per-status wrappers buy, reached
+without a record per status. `Status<TCode>` is the bodyless half.
+
+An application declares its own marker for a code nobody registered:
+
+```csharp
+public readonly struct QuotaExhausted : IStatusCode {
+    public static int Status => 466;
+}
+```
 
 ## Union
 
@@ -180,14 +217,18 @@ In `Standard`, an operation declaring a 404 generates a nullable return, and `nu
 public Task<Todo?> GetTodo(int id) => Task.FromResult(_store.Find(id));
 ```
 
-To explain the refusal instead, throw the generated `{Operation}{Status}Exception`, which carries a
-body you wrote.
+To explain the refusal instead, throw the response the status resolves to:
+
+```csharp
+throw new NotFound<Problem>(new Problem { Detail = $"No todo has id {id}." }).AsException();
+```
 
 Standard here **can** answer a non-200 success, because the contract names the status — a `201` in
 the description is a 201 on the wire. What it cannot express is more than one success.
 
-In `Response` or `Union`, the build generates a container named `{Operation}Response` and one case
-type per declared status:
+In `Response` or `Union`, the build generates a container named `{Operation}Response`. The success
+case is the operation's own payload type, and every other status is the shipped record for that
+status over the payload the contract declared:
 
 ```csharp
 public Task<GetTodoResponse> GetTodo(int id) {
@@ -195,17 +236,46 @@ public Task<GetTodoResponse> GetTodo(int id) {
 
     if (todo is null) {
         return Task.FromResult<GetTodoResponse>(
-            new GetTodoNotFound(new Problem { Detail = $"No todo has id {id}." }));
+            new NotFound<Problem>(new Problem { Detail = $"No todo has id {id}." }));
     }
 
     return Task.FromResult<GetTodoResponse>(todo);
 }
 ```
 
-The success case is the operation's own payload type. Every other status is wrapped in a
-`{Operation}{Status}` record whose `Body` is the payload the contract declared. A bodyless status is
-a case that serialises nothing: an operation declaring `204` and `404` gets a `{Operation}NoContent`
-case with no body at all.
+A 404 carrying a `Problem` is `NotFound<Problem>`, whatever operation declared it. A bodyless status
+is the bodyless record: an operation declaring `204` and `404` gets `NoContent` and `NotFound`.
+
+### When the build still generates a type
+
+Three shapes, and only three.
+
+**An error the description named.** A Smithy `@error` shape, or an OpenAPI `components/responses`
+key, keeps that name, once, shared by every operation that binds it:
+
+```csharp
+throw new AccountNotFound($"No account {id}.").AsException();
+```
+
+`AccountNotFoundException` rather than `GetBalanceBadRequestException` beside
+`TransferBadRequestException`, which is what every other Smithy code generator emits from the same
+model. The `AsException()` overload is generated on the payload when the payload names one error, so
+the type is written once rather than twice. It lives in `{File}Errors` in the models namespace,
+because an extension method has to sit in a non-generic static class.
+
+Two errors over one schema stay written out. `components/responses` lets an author declare
+`PetMissing` and `PetLocked` both carrying `ApiError`, and there is no single exception an `ApiError`
+means.
+
+**An error declaring a header.** A shipped wrapper has nowhere to put a `Retry-After`, so that error
+keeps a case type of its own.
+
+**A status with neither a record nor a marker**, which is only an unregistered code.
+
+::: tip What you give up
+A reader can no longer learn what an operation throws from a type named after it. The interface
+method says it instead, one line per declared error, which is where the question belongs.
+:::
 
 ## More than one success
 

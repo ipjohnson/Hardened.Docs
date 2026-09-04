@@ -59,7 +59,19 @@ All take `As` to narrow the service type, and `Using` to choose the registration
 
 | Attribute | Target | Purpose |
 |---|---|---|
-| `[Retry(Retries, SleepTime)]` | Method | Retries the handler. Defaults: 3 retries, 500 ms |
+| `[Retry]` | Class, method | Re-runs the handler after a failure. `Attempts` (3), `SleepTime` (500 ms), `TotalBudget` (10 s), `AllowNonIdempotent`. Declines client errors, and non-idempotent verbs unless told otherwise |
+
+`Hardened.Requests.Runtime.Caching`
+
+| Attribute | Target | Purpose |
+|---|---|---|
+| `[CacheResponse<T>(values, …)]` | Class, method | [Stores the response](/guide/response-caching) and serves it without running the handler. `Duration`, `Scope`, `Tags`. `AllowMultiple`, and the parts compose into one key |
+
+`Hardened.Requests.Caching.Memory`
+
+| Attribute | Target | Purpose |
+|---|---|---|
+| `[HardenedMemoryResponseCache]` | Class | Registers the in-process `IResponseCacheStore`. Nothing stores a response without a store |
 
 ## Authorization
 
@@ -99,12 +111,37 @@ See [Authorization](/guide/authorization).
 | `[BasePath(path)]` | Class, assembly | Prefixes every route beneath it |
 | `[FromQueryString(name?)]` | Parameter | Binds from the query string |
 | `[FromHeader(name?)]` | Parameter | Binds from a request header |
-| `[CacheControl]` | Method | Sets cache headers. `MaxAge`, `Type` |
+| `[CacheControl]` | Method | Sets cache headers. `MaxAge`, `Type`. The header half of caching; `[CacheResponse<T>]` is the store half |
+| `[ServerSentEvents]` | Method | Frames an `IAsyncEnumerable<T>` as [`text/event-stream`](/guide/streaming) rather than NDJSON |
 | `[WebLibrary]` | Class | Marks a web library entry point |
 | `[Tag(name)]` | Class | The [OpenAPI tag](/guide/openapi-document) this controller's operations group under. Defaults to the class name minus `Controller` |
 | `[Server(url, description?)]` | Class, assembly | A base URL the generated document lists under `servers` |
 | `[CaseInsensitiveRoutes]` | Class | Matches this module's routes [without regard to case](/guide/routing#case-and-trailing-slashes) |
 | `[RouteConstraint(name)]` | Method | Declares a [route constraint](/guide/routing#declaring-your-own-constraint). `static bool(ReadOnlySpan<char>)` |
+
+`Hardened.Web.Runtime.Compression`
+
+| Attribute | Target | Purpose |
+|---|---|---|
+| `[Compress]` | Class, method | [Compresses this operation's responses](/guide/compression) under the configured media-type rule. `Favor` picks a coding |
+| `[Compress<TPredicate>(args)]` | Class, method | The same, decided by a predicate over the value the handler returned |
+
+`Hardened.Web.Runtime.Conditional`
+
+| Attribute | Target | Purpose |
+|---|---|---|
+| `[ConditionalGet]` | Class, method | Answers a caller holding the response with a [304](/guide/conditional-requests). GET handlers only |
+
+Both features are off until the application asks for them, and both can be turned on for every
+handler from the module instead:
+
+| Attribute | Target | Purpose |
+|---|---|---|
+| `[Enable<HardenedCompression>]` | Class | [Compresses](/guide/compression) every response the media-type rule admits, for every client that accepts it |
+| `[Enable<ConditionalGet>]` | Class | Answers a [conditional GET](/guide/conditional-requests) at every GET handler |
+
+Each stands down for a handler carrying its own `[Compress]` or `[ConditionalGet]`, so explicit beats
+convention.
 
 The verb attributes also declare `SuccessStatus`, the status a successful response answers with
 and the document publishes; unset means 200. The `NullReturnStatus`, `ValidationErrorStatus` and
