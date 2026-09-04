@@ -96,6 +96,7 @@ export default defineConfig({
             { text: 'Content negotiation', link: '/guide/content-negotiation' },
             { text: 'JSON serialization', link: '/guide/json' },
             { text: 'Streaming responses', link: '/guide/streaming' },
+            { text: 'Compression', link: '/guide/compression' },
             { text: 'Views', link: '/guide/templates' },
           ],
         },

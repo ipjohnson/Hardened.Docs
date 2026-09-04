@@ -118,6 +118,10 @@ runtime or behind Kestrel.
 
 ## Compression
 
-Streamed responses are never compressed. The response serializers compress per call, which on a
-stream would put a separate gzip member on the wire for every item. For NDJSON, ask for compression
-at the transport.
+An NDJSON stream is compressed like any other response once [compression](/guide/compression) is
+enabled, as one gzip or Brotli member around the whole stream. The flush after each item is a sync
+flush on the encoder, so the caller still reads the first item while the handler is producing the
+second.
+
+Server-sent events are excluded by default and go out uncompressed. Add `text/event-stream` to
+`MediaTypes` and remove it from `ExcludedMediaTypes` to change that.

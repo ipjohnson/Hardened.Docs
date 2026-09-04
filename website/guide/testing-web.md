@@ -100,9 +100,10 @@ public class TestWebResponse {
 
 `Deserialize<T>` transparently decompresses gzip and Brotli bodies. The test client sends
 `Accept-Encoding: gzip`, so a test asserting on the deserialised value never has to know which it
-got.
+got. `Body` is the bytes as sent, for a test asserting on the coding itself.
 
-`DeserializeAsyncEnumerable<T>` reads NDJSON, one object per line, for streaming handlers.
+`DeserializeAsyncEnumerable<T>` reads NDJSON, one object per line, for streaming handlers. It
+decodes the same way.
 
 ### Status assertions
 

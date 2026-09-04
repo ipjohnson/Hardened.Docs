@@ -81,19 +81,32 @@ Filters are sorted by an integer. Lower runs earlier — that is, further from t
 | `Normal` | `100` |
 | `Last` | `int.MaxValue` |
 
-`FilterOrder` names the positions used when registering through the filter registry:
+`FilterOrder` names the positions used when registering through the filter registry. Stages are
+a thousand apart, so a filter of your own has room between any two:
 
-| Name | Value |
-|---|---|
-| `HandlerCreation` | `-1000` |
-| `BeforeSerialization` | `4` |
-| `Serialization` | `5` |
-| `Validation` | `6` |
-| `DefaultValue` | `1000` |
-| `EndPointHandlers`, `EndPointInvoke` | `2000` |
+| Name | Value | What runs there |
+|---|---|---|
+| `HandlerCreation` | `-10000` | creating the handler instance |
+| `RateLimitTransport` | `1000` | refusing on volume, before the caller is known |
+| `Authentication` | `2000` | establishing the caller |
+| `RateLimitPrincipal` | `3000` | refusing on volume, per caller |
+| `GrantAuthorization` | `4000` | authorization from grants alone |
+| `Conditional` | `5000` | reserved for conditional requests |
+| `ResponseCache` | `6000` | serving a stored response |
+| `BeforeSerialization` | `6500` | `[CacheControl]` |
+| `Serialization` | `7000` | binding in, writing out |
+| `Validation` | `8000` | the contract's constraints |
+| `Authorization` | `9000` | authorization over bound parameters |
+| `Retry` | `10000` | re-running the handler |
+| `DefaultValue` | `100000` | a filter that states no order |
+| `EndPointHandlers`, `EndPointInvoke` | `200000` | the handler |
 
-A filter that must see the response value picks a number below `Serialization`; one that must see
-the bytes picks a number above it.
+`FilterOrder.Before` and `FilterOrder.After` are half a gap, so `FilterOrder.Before +
+FilterOrder.Serialization` reads as it means. Request decompression and response compression both
+sit at `FilterOrder.Before + FilterOrder.ResponseCache`.
+
+A filter that must see the response value picks a position below `Serialization`; one that must
+see the bytes picks a position above it.
 
 ## Attaching a filter to one handler
 
