@@ -105,6 +105,12 @@ git diff --exit-code src/Todos/openapi
 
 ## The test
 
+A client is worth having only if it is exercised, and the scaffold exercises it against the real
+service without a socket. A test declares the client as a parameter and the harness builds one over
+an `HttpClient` whose handler runs the same pipeline the application runs, already carrying the
+test's credential. [Testing web handlers](/guide/testing-web#an-httpclient-over-the-pipeline) has
+the harness in full; this is the client-shaped part of it.
+
 The generated client has one constructor, and it takes an `IRequestAdapter`. The framework does not
 know that type and should not, so the test project says how to build the client from an
 `HttpClient`, once:
@@ -190,6 +196,111 @@ Under `--response-model throws` the scaffold's test is different, and the differ
 response-model argument in a consumer's hands: throws mode documents only the 200, so the generated
 client has no 404 branch, and the same request that throws a typed `NotFound` under the response
 model is a bare `ApiException` there. The scaffolded test says so in its comment.
+
+## Against a real service
+
+Everything above builds the client for a test, over the in-process pipeline. The same project is
+what other teams consume, and two things change: the base URL is real, and so is the credential.
+
+### Ship it
+
+The scaffolded client project is packable and its only dependency is the Kiota bundle, which is what
+makes it worth shipping rather than asking each consumer to run a generator:
+
+```bash
+dotnet pack src/Todos.Client -p:PackageVersion=1.2.0
+```
+
+Version it with the service, not with the solution. The package's public surface is a function of
+the document, so a version that moves when the contract moves is the one a consumer can reason
+about. Nothing in the template pushes it anywhere.
+
+The alternative is to publish the document and let each consumer generate. Both work off the same
+file, and a consumer in another language has to do that anyway.
+
+### Construct it
+
+```csharp
+var http = KiotaClientFactory.Create();
+
+var client = new TodosClient(
+    new HttpClientRequestAdapter(new AnonymousAuthenticationProvider(), httpClient: http) {
+        BaseUrl = "https://todos.example.com"
+    });
+```
+
+`KiotaClientFactory.Create()` returns an `HttpClient` carrying Kiota's own middleware: retry,
+redirect, parameter-name decoding and the rest. **The test factory deliberately does not use it**,
+because a test asserting a 429 or a 308 wants what the pipeline answered rather than what the
+middleware made of it. In production it is what you want.
+
+`BaseUrl` is required by Kiota. A code-first document with no [`[Server]`](/guide/openapi-document)
+has no `servers` entry, so Kiota warns on every generation and this is the line that settles it.
+
+### Authenticate it
+
+The test harness sends credentials as headers through
+[attributes](/guide/testing-web#credentials). A real consumer hands the adapter an authentication
+provider instead:
+
+```csharp
+public sealed class TokenProvider : IAccessTokenProvider {
+
+    public AllowedHostsValidator AllowedHostsValidator { get; } =
+        new(["todos.example.com"]);
+
+    public async Task<string> GetAuthorizationTokenAsync(
+        Uri uri,
+        Dictionary<string, object>? additionalAuthenticationContext = null,
+        CancellationToken cancellationToken = default) =>
+        await _tokens.AcquireFor(uri, cancellationToken);
+}
+```
+
+```csharp
+var adapter = new HttpClientRequestAdapter(
+    new BaseBearerTokenAuthenticationProvider(new TokenProvider()), httpClient: http) {
+        BaseUrl = "https://todos.example.com"
+    };
+```
+
+`AllowedHostsValidator` is the part worth not skipping: it stops the token going out on a redirect
+to somewhere else. `ApiKeyAuthenticationProvider` is the equivalent for a key in a header or query
+value. These are Kiota's types, not Hardened's, and
+[Kiota's authentication reference](https://learn.microsoft.com/openapi/kiota/authentication) is
+where the rest of them are.
+
+### Register it
+
+```csharp
+services.AddHttpClient("todos")
+        .AddStandardResilienceHandler();
+
+services.AddSingleton<IAuthenticationProvider>(
+    new BaseBearerTokenAuthenticationProvider(new TokenProvider()));
+
+services.AddSingleton(provider => new TodosClient(
+    new HttpClientRequestAdapter(
+        provider.GetRequiredService<IAuthenticationProvider>(),
+        httpClient: provider.GetRequiredService<IHttpClientFactory>().CreateClient("todos")) {
+        BaseUrl = "https://todos.example.com"
+    }));
+```
+
+A **named** client rather than `AddHttpClient<TodosClient>()`, because the typed-client overload
+constructs `TodosClient` from an `HttpClient` and a Kiota client's constructor takes an
+`IRequestAdapter`. The same reason the test harness needs a factory for it.
+
+`IHttpClientFactory` is what gives the client socket reuse and DNS refresh; a long-lived
+`HttpClient` built by hand gets neither. `AddStandardResilienceHandler` comes from
+`Microsoft.Extensions.Http.Resilience`. Use it or Kiota's own middleware, not both, or a failed
+request is retried by each in turn.
+
+::: tip The same client, both ways
+Nothing about the client knows whether its `HttpClient` reaches a socket or the in-process
+pipeline. That is the whole point of the transport: the client a consumer ships with is the client
+the service's own tests drive.
+:::
 
 ## What Kiota does with a Hardened document
 
@@ -280,3 +391,9 @@ kiota client add --client-name todos --language TypeScript \
 The client project's target then becomes `dotnet kiota client generate --client-name TodosClient`,
 and each further language is one more `kiota client add`. The document stays where the build
 writes it, and the workspace reads it.
+
+## Next
+
+- [Testing web handlers](/guide/testing-web) — the transport underneath the client tests, the credential attributes and `LastResponse`
+- [The OpenAPI document](/guide/openapi-document) — what the exported file contains and how to shape it
+- [Project templates](/guide/project-templates) — `--client` scaffolds all of this; `none` leaves it out
