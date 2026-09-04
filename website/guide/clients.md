@@ -324,6 +324,35 @@ A code-first document without `[Server]` has no `servers` entry, so Kiota says s
 generation and the consumer sets `BaseUrl` on the adapter — the one line the scaffold's factory
 carries. The template keeps that line out of the build's warning count.
 
+### Where the service and the document disagree
+
+The three above are Kiota's shape. These are the service's, found by generating a client against it
+and open at 0.19. A client makes them visible because it holds the document to its word.
+
+::: warning Smithy in throws mode: a declared error arrives with no body
+A Smithy `@error` shape is a named structure with a required `message`, and the document says the
+404 carries it. In throws mode the handler answers that 404 by returning `null`, and the runtime
+writes no body at all — `404` with `Content-Length: 0`. Kiota registered the shape for that status,
+so the client throws a bare `ApiException` saying the error failed to deserialize, rather than the
+typed `TodoNotFound`.
+
+**The scaffold ships this test skipped** under `--contract smithy --response-model throws`, naming
+the defect. Under `--response-model response` or `union` the handler returns the error case, the
+body is written, and the same test passes.
+:::
+
+An OpenAPI service in throws mode has the milder version of it: a `null` return answers the
+document's `Problem` with no `detail`. That deserializes, so the client throws the typed exception
+either way and only the message is empty. Whether a null return should carry a default detail is
+open.
+
+**A Smithy model on the AWS JSON protocol produces a document no client can be generated from.**
+Every operation is `POST /`, told apart by a header, so the document repeats the `post` key under
+one path. That is the protocol's shape and the export carries it faithfully, but it is not
+something an OpenAPI reader accepts — Microsoft.OpenApi's refuses it, and Kiota cannot generate
+from it. A Smithy service that wants a generated client needs `@http` bindings that give each
+operation its own method and path.
+
 ## Other generators
 
 Generator-specific code is confined to two places by construction: the client project's build
