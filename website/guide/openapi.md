@@ -203,19 +203,24 @@ public class PetService : IPetService {
 That is the whole wiring. There are no route attributes — the verbs and paths came from the
 document — and nothing to register.
 
-To explain a refusal rather than answer it with the document's default body, throw the generated
-`{Operation}{Status}Exception`:
+To explain a refusal rather than answer it with the document's default body, throw the response the
+declared status binds to:
 
 ```csharp
 public async Task<Pet?> GetPet(string petId) {
     if (await _store.IsArchived(petId)) {
-        throw new GetPetNotFoundException(
-            new Problem(Title: "Archived", Detail: $"Pet {petId} was archived."));
+        throw new NotFound<Problem>(
+            new Problem(Title: "Archived", Detail: $"Pet {petId} was archived.")).AsException();
     }
 
     return await _store.Find(petId);
 }
 ```
+
+An anonymous error, which is what a `$ref` to a shared `Problem` schema is, binds to the record the
+framework already ships for that status. The build generates nothing for it, and a code-first
+handler returns the same type. An error under a `components/responses` key keeps that name instead;
+see [When the build still generates a type](/guide/responses#when-the-build-still-generates-a-type).
 
 ## Declaring the whole response set
 
@@ -234,7 +239,7 @@ public Task<GetPetResponse> GetPet(string petId) {
 
     if (pet is null) {
         return Task.FromResult<GetPetResponse>(
-            new GetPetNotFound(new Problem(Detail: $"No pet has id {petId}.")));
+            new NotFound<Problem>(new Problem(Detail: $"No pet has id {petId}.")));
     }
 
     return Task.FromResult<GetPetResponse>(pet);

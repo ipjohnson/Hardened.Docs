@@ -243,8 +243,12 @@ public Task<GetTodoResponse> GetTodo(int id) {
 }
 ```
 
-A 404 carrying a `Problem` is `NotFound<Problem>`, whatever operation declared it. A bodyless status
-is the bodyless record: an operation declaring `204` and `404` gets `NoContent` and `NotFound`.
+A 404 carrying a `Problem` is `NotFound<Problem>`, whatever operation declared it. Two operations
+declaring one 404 over one schema share the one type, where before they got two.
+
+**The success side is unchanged.** A success case carries the operation's own payload, so two
+operations declaring a 200 have nothing to share, and each keeps a case named `{Operation}{Status}`.
+An operation declaring `204` and `404` gets `{Operation}NoContent` and `NotFound<Problem>`.
 
 ### When the build still generates a type
 
