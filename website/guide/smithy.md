@@ -333,7 +333,7 @@ The error case is named for the shape as well, so `GetTodo` and `RemoveTodo` sha
 record already holds the shape's own name. A success case is still named for the operation, since
 it carries the operation's own payload and has nothing to share.
 
-`Standard`, `Response` or `Union`; absent means `Standard`. See
+`Throws`, `Response` or `Union`; absent means `Throws`. See
 [Declared responses](/guide/responses).
 
 ## Serving the document
@@ -379,7 +379,7 @@ Everything downstream is identical, and a project can use both inputs together. 
 | `HardenedSmithyServiceShapeId` | Selects one service when the model declares several |
 | `HardenedSmithyCliVersion` | The CLI version this build expects. Defaults to `1.73.0` |
 | `HardenedSmithyPinCliVersion` | Whether a version mismatch fails or warns. Defaults to `ContinuousIntegrationBuild` |
-| `HardenedResponseModel` | `Standard`, `Response` or `Union` |
+| `HardenedResponseModel` | `Throws`, `Response` or `Union` |
 | `ExcludeGeneratedCodeFromCoverage` | `[ExcludeFromCodeCoverage]` on generated types. Defaults to `true` |
 
 All `HardenedSmithyModel` items in a project form **one** model in one CLI invocation, since a Smithy

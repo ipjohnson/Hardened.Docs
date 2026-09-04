@@ -110,7 +110,7 @@ instead, deduped.
 
 ```csharp
 [Get("/alerts/{alertId}")]
-[Authorize]
+[Authorize<BearerAuth>]
 [CacheResponse<VaryByRoute>(Duration = 60, Scope = CacheScope.PerCaller)]
 public Alert Read(string alertId) => _alerts.OwnedBy(_caller.Principal.Subject, alertId);
 ```

@@ -87,7 +87,9 @@ export default defineConfig({
             { text: 'Routing', link: '/guide/routing' },
             { text: 'Parameter binding', link: '/guide/parameter-binding' },
             { text: 'Validation', link: '/guide/validation' },
+            { text: 'Authentication', link: '/guide/authentication' },
             { text: 'Authorization', link: '/guide/authorization' },
+            { text: 'Rate limiting', link: '/guide/rate-limiting' },
             { text: 'The execution pipeline', link: '/guide/execution-pipeline' },
             { text: 'Generating from OpenAPI', link: '/guide/openapi' },
             { text: 'Generating from Smithy', link: '/guide/smithy' },
@@ -139,6 +141,7 @@ export default defineConfig({
           text: 'Reference',
           items: [
             { text: 'Attributes', link: '/reference/attributes' },
+            { text: 'Diagnostics', link: '/reference/diagnostics' },
             { text: 'Packages', link: '/reference/packages' },
             { text: 'Repositories', link: '/reference/repositories' },
           ],

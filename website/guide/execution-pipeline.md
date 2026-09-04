@@ -72,12 +72,12 @@ Filters are sorted by an integer. Lower runs earlier, which is to say further fr
 | Stage | Value | What sits there |
 |---|---|---|
 | `HandlerCreation` | `-10000` | Creating the handler instance, and `[Retry]`'s body capture |
-| `RateLimitTransport` | `1000` | Refusing on volume, before anyone has asked who is calling |
-| `Authentication` | `2000` | Establishing who the caller is |
+| `RateLimitTransport` | `1000` | [Refusing on volume](/guide/rate-limiting), before anyone has asked who is calling |
+| `Authentication` | `2000` | [Establishing who the caller is](/guide/authentication) |
 | `RateLimitPrincipal` | `3000` | Refusing on volume, once it is known whose volume it is |
-| `GrantAuthorization` | `4000` | Deciding from grants alone |
-| `Conditional` | `5000` | Answering a conditional GET with a 304 |
-| `ResponseCache` | `6000` | Serving a stored response instead of running the handler |
+| `GrantAuthorization` | `4000` | [Deciding from grants](/guide/authorization) alone |
+| `Conditional` | `5000` | Answering a [conditional GET](/guide/conditional-requests) with a 304 |
+| `ResponseCache` | `6000` | Serving a [stored response](/guide/response-caching) instead of running the handler |
 | `BeforeSerialization` | `6500` | `Before + Serialization`, where `[CacheControl]` sits |
 | `Serialization` | `7000` | Binding the request, and serializing the response |
 | `Validation` | `8000` | Checking the constraints, over the parameters just bound |

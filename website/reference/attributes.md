@@ -81,7 +81,8 @@ All take `As` to narrow the service type, and `Using` to choose the registration
 |---|---|---|
 | `[AuthorizeGrants(grants)]` | Class, method | Requires every grant named. What a generator emits from a specification |
 | `[AuthorizeGrants<T>]` | Class, method | Requires every grant in the [`IGrantProvider`](/guide/authorization#typed-grant-sets) `T` names. The typed spelling |
-| `[Authorize<TPolicy>]` | Class, method | Requires the [policy](/guide/authorization#policies)'s requirement. The only form that can express *or* |
+| `[Authorize<TAuth>]` | Class, method | Requires a caller established through the [authentication scheme](/guide/authentication) `TAuth`. Declares the scheme in the document |
+| `[Authorize<TAuth, TPolicy>]` | Class, method | The same, and the [policy](/guide/authorization#policies)'s requirement as well. The only form that can express *or* |
 | `[AllowAnonymous]` | Class, method | Makes an operation public on purpose. Beats every requirement on the same handler, including a convention |
 | `[RequireAuthorization]` | Class, assembly | On the module: a handler declaring nothing is denied rather than public, and reported as `HAUTH001` at build |
 
@@ -204,8 +205,6 @@ From [Hardened.Amz](https://github.com/ipjohnson/Hardened.Amz).
 | `[LambdaFunctionModule]` | `Hardened.Amz.Function.Lambda.Runtime.DependencyInjection` | Lambda invocation runtime and the request pipeline. Required by every function application |
 | `[LambdaWebModule]` | `Hardened.Amz.Web.Lambda.Runtime.DependencyInjection` | API Gateway runtime and the web pipeline. Required by every Lambda web application |
 | `[LambdaWebApplication(Version)]` | `Hardened.Amz.Web.Lambda.Runtime` | States the payload format. `ProxyIntegrationType.HttpApiV2` is the default and the only implemented value; `.ApiGateway` is `HRDAWS001` |
-| `[StreamingLambdaWebModule]` | `Hardened.Amz.Web.Lambda.Streaming` | Response-streaming web runtime |
-| `[StreamingLambdaFunctionModule]` | `Hardened.Amz.Function.Lambda.Streaming` | Response-streaming function runtime |
 | `[SqsLambda]` | `Hardened.Amz.Function.Sqs.Runtime` | SQS batch runtime. Applied alongside `[LambdaFunctionModule]` |
 | `[DynamoStreamLambda]` | `Hardened.Amz.Function.DDB.Runtime` | DynamoDB Streams runtime. Applied alongside `[LambdaFunctionModule]` |
 | `[DynamoDbModule]` | `Hardened.Amz.DynamoDbClient` | Registers `IDynamoDbClientProvider` |
@@ -215,3 +214,6 @@ From [Hardened.Amz](https://github.com/ipjohnson/Hardened.Amz).
 | `[ThrowException]` | `Hardened.Amz.Function.Lambda.Runtime` | Rethrows, so the invocation fails instead of returning the error |
 | `[LambdaFunctionTesting]` | `Hardened.Amz.Function.Lambda.Testing` | Installs the Lambda test harnesses |
 | `[LocalDynamoDb(Image?)]` | `Hardened.Amz.DynamoDbClient.Testing` | Points the client provider at DynamoDB Local in a container |
+
+Whether a Lambda response streams is `HARDENED_LAMBDA_RESPONSE_MODE`, a deployment setting rather
+than an attribute; see [Response mode](/aws/lambda-web#response-mode).
