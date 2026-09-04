@@ -31,6 +31,10 @@ public partial class Application { }
 
 That stands down for any handler carrying `[ConditionalGet]` itself, so explicit beats convention.
 
+**GET handlers only, in both forms.** The routing table sends a HEAD to the GET leaf, and on any
+other method the conditional headers mean a 412, which this does not answer. So a class-level
+declaration on a controller that also writes installs nothing on the writes.
+
 ## Why it is declared and not assumed
 
 Nothing answers a 304 until one of those two declarations is written. A service whose responses are
