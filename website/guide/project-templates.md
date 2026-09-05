@@ -59,12 +59,12 @@ creating a todo answers 200 under `standard` and 201 under the other two. See
 combined with `--host aws-lambda`, whose managed runtime is `net8.0` — the generated project refuses
 with `HTPL001` rather than failing at deploy time.
 
-`--client` adds a C# client generated during the build from the document the library writes, with
-a test that drives it through the in-process pipeline: a Kiota client under `kiota`, or a Refit
+`--client` adds a C# client generated during the build from the document the library writes, and
+the handler tests drive it through the in-process pipeline: a Kiota client under `kiota`, or a Refit
 interface Refitter writes under `refit`, whose every operation returns an `IApiResponse<T>`. Either
-way the test project asserts through `Returns<T>()`, naming the response type the contract
-declares. `none` leaves out the client project, the tool manifest, the document export and the
-client tests. See [Clients](/guide/clients).
+way the tests assert through `Returns<T>()`, naming the response type the contract declares. `none`
+leaves out the client project, the tool manifest and the document export, and the same tests drive
+the pipeline through `ITestWebApp` instead. See [Clients](/guide/clients).
 
 ### What you get
 

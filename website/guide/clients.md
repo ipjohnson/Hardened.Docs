@@ -127,14 +127,14 @@ naming the response type the contract declares, reading the answer through the r
 the client:
 
 ```csharp
-// tests/Todos.Tests/TodosClientTests.cs
-public class TodosClientTests {
+// tests/Todos.Tests/TodoTests.cs
+public class TodoTests {
 
     [HardenedTest]
-    public async Task GetTodo_ThroughTheGeneratedClient(TodosClient client) {
-        var todo = await client.Todos[1].GetAsync();
+    public async Task GetTodo_ReturnsTheTodo(TodosClient client) {
+        var todo = await client.Todos[1].GetAsync().Returns<Ok<ClientModels.Todo>>();
 
-        Assert.Equal("Read the generated code", todo!.Title);
+        Assert.Equal("Read the generated code", todo.Value.Title);
     }
 
     /// <summary>
@@ -143,7 +143,7 @@ public class TodosClientTests {
     /// the client received, and Created carries all three.
     /// </summary>
     [HardenedTest]
-    public async Task CreateTodo_AnswersCreated(TodosClient client) {
+    public async Task CreateTodo_AnswersCreatedWithALocation(TodosClient client) {
         var created = await client.Todos.PostAsync(new ClientModels.NewTodo { Title = "ship it" })
             .Returns<Created<ClientModels.Todo>>();
 
@@ -156,7 +156,7 @@ public class TodosClientTests {
     /// for it - named after the case, NotFound, and carrying the body the server answered.
     /// </summary>
     [HardenedTest]
-    public async Task UnknownTodo_IsATypedNotFound(TodosClient client) {
+    public async Task GetTodo_UnknownId_IsATypedNotFound(TodosClient client) {
         var missing = await client.Todos[9999].GetAsync().Returns<NotFound<ClientModels.NotFound>>();
 
         Assert.Contains("9999", missing.Body.Detail);
