@@ -189,9 +189,11 @@ it is what a reader without 3.2 sees: Refitter takes a stream's element type fro
 reads neither for these media types and hands back a raw `Stream`. The item alone under `schema`
 is never written, because it would say the response is one item.
 
-This works in both directions. A specification declaring `itemSchema` generates a service
-interface returning `IAsyncEnumerable<T>`, so a spec-first application streams by writing the
-spec.
+This works in both directions for an OpenAPI contract. A document declaring `itemSchema`
+generates a service interface returning `IAsyncEnumerable<T>` and a handler that streams it with
+the framing the media type names, so an OpenAPI-first application streams by writing the
+document. A Smithy model has no spelling for a stream yet: `@streaming` on a union generates the
+union as one JSON payload.
 
 `itemSchema` needs a 3.2 document, which is the default. Pin to `3.0.0` or `3.1.0` and you get
 build warning `HRDOA002` naming the handler; the operation keeps the array under `schema`, so a
