@@ -192,8 +192,10 @@ is never written, because it would say the response is one item.
 This works in both directions for an OpenAPI contract. A document declaring `itemSchema`
 generates a service interface returning `IAsyncEnumerable<T>` and a handler that streams it with
 the framing the media type names, so an OpenAPI-first application streams by writing the
-document. A Smithy model has no spelling for a stream yet: `@streaming` on a union generates the
-union as one JSON payload.
+document. A Smithy model streams by binding a `@streaming` union as the output's `@httpPayload`,
+which is Smithy's own event stream: the interface returns `IAsyncEnumerable<TUnion>`, each item
+goes out as one member under `data:` with the member's name as `event:`, and the document
+describes the item as the choice of its members.
 
 `itemSchema` needs a 3.2 document, which is the default. Pin to `3.0.0` or `3.1.0` and you get
 build warning `HRDOA002` naming the handler; the operation keeps the array under `schema`, so a
