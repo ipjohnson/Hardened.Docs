@@ -404,17 +404,20 @@ The client project's generate target becomes `dotnet tool run nswag run nswag.js
 reference becomes `NSwag.MSBuild` or the tool manifest entry, and the test project needs no
 factory: the generated class takes an `HttpClient`.
 
-**Refitter.** `dotnet tool run refitter ../Todos/openapi/Todos.json --namespace Todos.Client
---output obj/refitter/TodosClient.cs --use-api-response` writes a Refit interface, and Refit builds
-the implementation from an `HttpClient` at run time. `Hardened.Refit.Testing` is the test side:
-`[assembly: RefitTesting]` makes every Refit interface a test parameter, and the same `Returns<T>()`
-asserts a call through it. `--use-api-response` is what makes that whole: it declares every
+**Refitter.** `--client refit` scaffolds it: the client project restores the Refitter tool and
+runs it over the exported document under the settings in its `.refitter` file, writing a Refit
+interface and its models into `obj/`, and Refit builds the implementation from an `HttpClient` at
+run time. `Hardened.Refit.Testing` is the test side: `[assembly: RefitTesting]` makes every Refit
+interface a test parameter, and the same `Returns<T>()` asserts a call through it. The setting that
+makes that whole is `returnIApiResponse` — Refitter's `--use-api-response` — which declares every
 operation `Task<IApiResponse<T>>`, the envelope that carries the status and the headers back beside
 the body, so nothing throws and a 201's `Location` is simply on the response. A method declared
 `Task<T>` throws for a refusal, which reads the same way, and returns the body alone for a success —
 and `Returns` refuses that success by name, because its status is gone. Refit has no error mapping,
 so an error body arrives as text and is read as the expectation's type argument, the `Problem` in
-`NotFound<Problem>`, through the client's own `RefitSettings`.
+`NotFound<Problem>`, through the client's own `RefitSettings`. The Refitter tool and the `Refit`
+package are pinned separately and bumped together by hand; Refitter does not report the version it
+writes for, so nothing checks the pair the way `HTPL003` checks Kiota's.
 
 **openapi-generator.** `openapi-generator-cli generate -g csharp -i src/Todos/openapi/Todos.json
 -o clients/csharp`. It needs a Java runtime, which the verify matrix cannot assume, and its
